@@ -1,0 +1,86 @@
+{
+  "project_info": {
+    "project_number": "112404769884",
+    "firebase_url": "https://eventer-eeb33.firebaseio.com",
+    "project_id": "eventer-eeb33",
+    "storage_bucket": "eventer-eeb33.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:112404769884:android:0d3629143cfb9c7c",
+        "android_client_info": {
+          "package_name": "com.example.eventer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "112404769884-8goqna9c0cjefi8vpjig0mk93d6ghhe9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe7fPOhlLR5lrvy6-XtUXqBDwuFdMpm1Q"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:112404769884:android:542641b635251cce",
+        "android_client_info": {
+          "package_name": "com.example.eventer2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "112404769884-kervm5caijfp7l5k1qlg8e0ne2osdqke.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.eventer2",
+            "certificate_hash": "54e3c8c996449ea740b6598815638975db15c83e"
+          }
+        },
+        {
+          "client_id": "112404769884-8goqna9c0cjefi8vpjig0mk93d6ghhe9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe7fPOhlLR5lrvy6-XtUXqBDwuFdMpm1Q"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "112404769884-8goqna9c0cjefi8vpjig0mk93d6ghhe9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

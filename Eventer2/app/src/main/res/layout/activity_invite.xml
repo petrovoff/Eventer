@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    tools:context=".activities.InviteActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/inviteToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimaryDark"
+        android:minHeight="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:popupTheme="@style/Base.ThemeOverlay.AppCompat" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/invite_list_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/invite_btn_base" />
+
+    <Button
+        android:id="@+id/invite_btn_phone"
+        android:layout_width="70dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/colorPrimaryDark"
+        android:text="All"
+        android:textAllCaps="false"
+        android:textColor="@color/colorPrimary"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toBottomOf="@+id/inviteToolbar" />
+
+    <Button
+        android:id="@+id/invite_btn_base"
+        android:layout_width="70dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/colorPrimary"
+        android:text="Eventer"
+        android:textAllCaps="false"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toBottomOf="@+id/inviteToolbar" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="90dp" />
+
+    <Button
+        android:id="@+id/invite_skip_btn"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorPrimaryDark"
+        android:text="Skip"
+        android:textAllCaps="false"
+        android:textColor="@color/colorPrimary"
+        android:textSize="10sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/invite_list_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/inviteToolbar" />
+
+    <Button
+        android:id="@+id/invite_send_sms"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorPrimaryDark"
+        android:text="SMS"
+        android:textColor="@color/colorPrimary"
+        android:textSize="9sp"
+        app:layout_constraintBottom_toTopOf="@+id/invite_list_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/inviteToolbar" />
+
+    <Button
+        android:id="@+id/invite_enable_sms"
+        android:layout_width="70dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorPrimary"
+        android:text="Disabled"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="8sp"
+        app:layout_constraintBottom_toTopOf="@+id/invite_list_view"
+        app:layout_constraintEnd_toStartOf="@+id/invite_send_sms"
+        app:layout_constraintTop_toBottomOf="@+id/inviteToolbar" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

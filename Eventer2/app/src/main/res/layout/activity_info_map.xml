@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".GoogleMapAndPlaces.InfoMapActivity">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/info_map"
+        tools:context=".MapsActivity"
+        android:name="com.google.android.gms.maps.SupportMapFragment" />
+
+    <ImageView
+        android:id="@+id/infomap_change"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="150dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/info_map"
+        app:srcCompat="@drawable/ic_mapchange" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/infomap_change_card"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/infomap_change">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/infomap_terrain_btn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_terrain" />
+
+            <ImageView
+                android:id="@+id/infomap_satellite_btn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintEnd_toStartOf="@+id/infomap_normal_btn"
+                app:layout_constraintStart_toEndOf="@+id/infomap_terrain_btn"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_satellite" />
+
+            <ImageView
+                android:id="@+id/infomap_normal_btn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_normal" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Terrain"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="@+id/infomap_terrain_btn"
+                app:layout_constraintStart_toStartOf="@+id/infomap_terrain_btn"
+                app:layout_constraintTop_toBottomOf="@+id/infomap_terrain_btn" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Satellite"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="@+id/infomap_satellite_btn"
+                app:layout_constraintStart_toStartOf="@+id/infomap_satellite_btn"
+                app:layout_constraintTop_toBottomOf="@+id/infomap_satellite_btn" />
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Normal"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="@+id/infomap_normal_btn"
+                app:layout_constraintStart_toStartOf="@+id/infomap_normal_btn"
+                app:layout_constraintTop_toBottomOf="@+id/infomap_normal_btn" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

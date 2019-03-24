@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Eventer</string>
+    <string name="login_btn">Login</string>
+    <string name="login_signup_text">Need a new Account?</string>
+    <string name="login_email_text">Email</string>
+    <string name="login_email_hint">Your Email</string>
+    <string name="login_password_text">Password</string>
+    <string name="login_password_hint">Your Password</string>
+    <string name="login_subtitle_text">Welcome to</string>
+    <string name="action_settings_text">Account Settings</string>
+    <string name="action_logout_btn">Logout</string>
+    <string name="register_login_btn">Already have an Account?</string>
+    <string name="reg_confirm_password_text">Confirm Password</string>
+    <string name="register_btn_text">Create new Account</string>
+    <string name="start_date_btn_text">Start Date</string>
+    <string name="end_date_btn_text">End Date</string>
+    <string name="event_name_text">Event Name</string>
+    <string name="event_theme_text">Event Theme</string>
+    <string name="event_end_time_text">End Time</string>
+    <string name="event_start_time_text">Start Time</string>
+    <string name="event_location_text">Location</string>
+    <string name="event_button_text">Create Event</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="friend_title_text">List of Friends</string>
+
+    <string name="dialog_sms">SMS</string>
+</resources>
