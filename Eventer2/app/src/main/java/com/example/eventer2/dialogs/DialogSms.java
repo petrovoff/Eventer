@@ -23,7 +23,6 @@ public class DialogSms extends AppCompatDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.activity_invite, null);
 
-        mEnable = view.findViewById(R.id.invite_enable_sms);
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(R.string.dialog_sms)

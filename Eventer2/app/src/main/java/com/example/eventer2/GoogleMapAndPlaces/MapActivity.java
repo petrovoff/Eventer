@@ -70,6 +70,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private AutoCompleteTextView mSearchText;
     private ImageView mPlacePicker;
     private ImageView mChangeMap;
+    private ImageView mSearchClear;
     private ImageView mTerrain, mSatellite, mNormal;
     private Button mSaveLocation;
     private CardView mChangeCard;
@@ -99,6 +100,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mNormal = findViewById(R.id.map_normal_btn);
         mSaveLocation = findViewById(R.id.map_save);
         mChangeCard = findViewById(R.id.map_change_card);
+        mSearchClear = findViewById(R.id.map_search_clear);
+
+
+        mSearchClear.setOnClickListener(v -> {
+            mSearchText.setText("");
+        });
 
 
         getLocationPermission();

@@ -31,19 +31,34 @@
         app:layout_constraintTop_toBottomOf="@+id/setup_progress" />
 
     <EditText
-        android:id="@+id/user_full_name"
+        android:id="@+id/username"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="32dp"
         android:backgroundTint="@color/colorAccent"
         android:ems="10"
-        android:hint="Full Name"
+        android:hint="Username..."
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/user_image" />
+
+    <EditText
+        android:id="@+id/user_email"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:backgroundTint="@color/colorAccent"
+        android:ems="10"
+        android:hint="Email"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/user_phone_number" />
 
 
     <EditText
@@ -59,7 +74,7 @@
         android:inputType="number"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/user_full_name" />
+        app:layout_constraintTop_toBottomOf="@+id/username" />
 
     <Button
         android:id="@+id/user_save_data"
@@ -76,7 +91,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/user_phone_number" />
+        app:layout_constraintTop_toBottomOf="@+id/user_email" />
 
     <ImageView
         android:id="@+id/profile_progress_dot1"
@@ -85,7 +100,7 @@
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline4"
-        app:srcCompat="@drawable/ic_register_progress" />
+        app:srcCompat="@drawable/ic_register_progress_gray" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline4"

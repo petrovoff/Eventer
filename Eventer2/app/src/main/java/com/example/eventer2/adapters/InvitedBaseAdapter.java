@@ -2,7 +2,6 @@ package com.example.eventer2.adapters;
 
 import android.content.Context;
 import android.os.Build;
-import android.telephony.SmsManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +24,7 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAdapter.ViewHolder>{
+public class InvitedBaseAdapter extends RecyclerView.Adapter<InvitedBaseAdapter.ViewHolder> {
 
     public List<InvitedFriend> mInvitedList;
     public Context mContext;
@@ -33,7 +32,7 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
     public FirebaseFirestore mFirestore;
     public FirebaseAuth mAuth;
 
-    public InvitedFriendsAdapter(List<InvitedFriend> invitedList, Context context){
+    public InvitedBaseAdapter(List<InvitedFriend> invitedList, Context context){
         this.mContext = context;
         this.mInvitedList = invitedList;
     }
@@ -45,13 +44,11 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
         mFirestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
-
-
-        return new InvitedFriendsAdapter.ViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.setIsRecyclable(false);
 
         TextView guest_name, guest_number;
@@ -72,6 +69,7 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
 
         holder.mEventImage.setVisibility(View.INVISIBLE);
         holder.invitedUsername.setVisibility(View.INVISIBLE);
+
 
         //promena broja iz imenika
         String phone = mInvitedList.get(position).getNumber();
@@ -104,8 +102,9 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
                 }
             }
         });
-//        //pozivamo ljude na event
-        holder.guestInvateBtn.setOnClickListener(v -> {
+
+        //        //pozivamo ljude na event
+        holder.guestInviteBtn.setOnClickListener(v -> {
 
             Toast.makeText(mContext, "Username:" + invited_name + " userId:" + invited_demo, Toast.LENGTH_SHORT).show();
 
@@ -121,9 +120,8 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
                         invitedMap.put("eventId", eventId);
                         invitedMap.put("arrival", "No answer");
 
-
                         mFirestore.collection("Events/" + eventId + "/Guests").document(invited_demo).set(invitedMap);
-                        holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
+                        holder.guestInviteBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
                         Toast.makeText(mContext, invited_name + " was invited!", Toast.LENGTH_LONG).show();
                     }
                 }
@@ -153,7 +151,7 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
                         eventMap.put("endTime", endTime);
                         eventMap.put("authorId", author);
 
-                        onSendSms(name,location,startDate,startTime);
+
                         if(invited_id != null){
                             mFirestore.collection("Users/" + invited_id + "/InvitedEvents").document(eventId).set(eventMap);
                         }else {
@@ -169,49 +167,50 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
             if(documentSnapshot != null) {
                 if (documentSnapshot.exists()) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
+                        holder.guestInviteBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
+                        holder.guestInviteBtn.setEnabled(false);
                     }
                 } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.guest_not_invited));
+                        holder.guestInviteBtn.setImageDrawable(mContext.getDrawable(R.drawable.guest_not_invited));
                     }
                 }
             }
         });
 
         mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(userTask -> {
-           if(userTask.isSuccessful()) {
-               if (userTask.getResult().exists()) {
-                   String userId = userTask.getResult().getString("userId");
-                   String demoId = userTask.getResult().getString("demoId");
+            if(userTask.isSuccessful()) {
+                if (userTask.getResult().exists()) {
+                    String userId = userTask.getResult().getString("userId");
+                    String demoId = userTask.getResult().getString("demoId");
 
-                   mFirestore.collection("Events/" + eventId + "/Guests").addSnapshotListener((guestQuery, e) -> {
-                       if(guestQuery != null){
-                           for(DocumentChange doc: guestQuery.getDocumentChanges()) {
-                               if (doc.getType() == DocumentChange.Type.ADDED) {
-                                   Guest guest = doc.getDocument().toObject(Guest.class);
+                    mFirestore.collection("Events/" + eventId + "/Guests").addSnapshotListener((guestQuery, e) -> {
+                        if(guestQuery != null){
+                            for(DocumentChange doc: guestQuery.getDocumentChanges()) {
+                                if (doc.getType() == DocumentChange.Type.ADDED) {
+                                    Guest guest = doc.getDocument().toObject(Guest.class);
 
-                                   String guestDemoId = guest.getDemoId();
-                                   String guestArrival = guest.getArrival();
+                                    String guestDemoId = guest.getDemoId();
+                                    String guestArrival = guest.getArrival();
 
-                                   if(demoId.equals(guestDemoId)){
-                                       HashMap<String, Object> invitedMap = new HashMap<>();
-                                       invitedMap.put("name", invited_name);
-                                       invitedMap.put("number", invited_number);
-                                       invitedMap.put("demoId", invited_demo);
-                                       invitedMap.put("userId", userId);
-                                       invitedMap.put("eventId", eventId);
-                                       invitedMap.put("arrival", guestArrival);
+                                    if(demoId.equals(guestDemoId)){
+                                        HashMap<String, Object> invitedMap = new HashMap<>();
+                                        invitedMap.put("name", invited_name);
+                                        invitedMap.put("number", invited_number);
+                                        invitedMap.put("demoId", invited_demo);
+                                        invitedMap.put("userId", userId);
+                                        invitedMap.put("eventId", eventId);
+                                        invitedMap.put("arrival", guestArrival);
 
-                                       mFirestore.collection("Events" + eventId + "/Guests").document(demoId).set(invitedMap);
-                                   }
-                               }
-                           }
-                       }
-                   });
+                                        mFirestore.collection("Events" + eventId + "/Guests").document(demoId).set(invitedMap);
+                                    }
+                                }
+                            }
+                        }
+                    });
 
-               }
-           }
+                }
+            }
         });
 
     }
@@ -231,28 +230,21 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
         private TextView invitedName;
         private TextView invitedNumber;
         private TextView invitedUsername;
-        private ImageView guestInvateBtn;
+        private ImageView guestInviteBtn;
         private ImageView mEventImage;
 
-        ViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
             mView = itemView;
 
-            guestInvateBtn = mView.findViewById(R.id.guest_invate_btn);
+            guestInviteBtn = mView.findViewById(R.id.guest_invate_btn);
             mEventImage = mView.findViewById(R.id.guest_list_event_logo);
 
             invitedName = mView.findViewById(R.id.guest_list_name);
             invitedNumber = mView.findViewById(R.id.guest_list_number);
             invitedUsername = mView.findViewById(R.id.guest_list_username);
-        }
-    }
 
-    public void onSendSms(String eventName, String location, String startDate, String startTime){
-        SmsManager sm = SmsManager.getDefault();
-        String number = "+381645871290";
-//        String number = "+381645741511";
-        String msg = "Invite to: " + eventName + "\n" + location;
-        sm.sendTextMessage(number,null, msg,null,null);
+        }
     }
 
     public void updateList(List<InvitedFriend> newList){

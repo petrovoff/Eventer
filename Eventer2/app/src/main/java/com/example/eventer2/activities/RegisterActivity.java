@@ -52,10 +52,14 @@ public class RegisterActivity extends AppCompatActivity {
 
                     mAuth.createUserWithEmailAndPassword(email,pass).addOnCompleteListener(task -> {
                         if(task.isSuccessful()){
-                            Intent profileIntent = new Intent(RegisterActivity.this, ProfileSetupActivity.class);
-                            profileIntent.putExtra("info", "1");
-                            startActivity(profileIntent);
+                            Intent authIntent = new Intent(RegisterActivity.this, AuthActivity.class);
+                            startActivity(authIntent);
                             finish();
+
+//                            Intent profileIntent = new Intent(RegisterActivity.this, ProfileSetupActivity.class);
+//                            profileIntent.putExtra("info", "1");
+//                            startActivity(profileIntent);
+//                            finish();
                         }else {
                             String errorMessage = task.getException().toString();
                             Toast.makeText(RegisterActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();

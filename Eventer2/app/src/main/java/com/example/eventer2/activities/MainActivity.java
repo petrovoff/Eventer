@@ -69,34 +69,34 @@ public class MainActivity extends AppCompatActivity {
                 eventNavBtn.setTextSize(18);
             });
 
-        }
-        String currentUserId = mAuth.getCurrentUser().getUid();
+            String currentUserId = mAuth.getCurrentUser().getUid();
 
-        userImageUrl = mData.getUserImageUri();
-        userName = mData.getUserName();
-        userPhone = mData.getUserPhone();
+            userImageUrl = mData.getUserImageUri();
+            userName = mData.getUserName();
+            userPhone = mData.getUserPhone();
 
-        if(userImageUrl != null && userName != null && userPhone != null) {
-            sendToAccount();
-        }else {
-            mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    if (task.getResult().exists()) {
-                        String imageUrl = task.getResult().getString("image");
-                        String name = task.getResult().getString("name");
-                        String phone = task.getResult().getString("phone");
+            if(userImageUrl != null && userName != null && userPhone != null) {
+            }else {
+                mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult().exists()) {
+                            String imageUrl = task.getResult().getString("image");
+                            String name = task.getResult().getString("name");
+                            String phone = task.getResult().getString("phone");
 
-                        if(imageUrl != null && name != null && phone != null) {
-                            mData.setUserName(name);
-                            mData.setUserImageUri(imageUrl);
-                            mData.setUserPhone(phone);
+                            if(imageUrl != null && name != null && phone != null) {
+                                mData.setUserName(name);
+                                mData.setUserImageUri(imageUrl);
+                                mData.setUserPhone(phone);
+                            }
+
                         }
-
-                        sendToAccount();
                     }
-                }
-            });
+                });
+            }
+
         }
+
     }
 
     @Override
@@ -158,21 +158,16 @@ public class MainActivity extends AppCompatActivity {
         mFirestore = FirebaseFirestore.getInstance();
     }
 
-    private void sendToAccount(){
-        Intent accountIntent = new Intent(this, AccountFragment.class);
-        accountIntent.putExtra("name", userName);
-        accountIntent.putExtra("phone", userPhone);
-        accountIntent.putExtra("image", userImageUrl);
-        startActivity(accountIntent);
-    }
 
     private void logOut(){
         mAuth.signOut();
+        mData.setUserName(null);
+        mData.setUserPhone(null);
         sendToLogin();
     }
 
     private void sendToLogin(){
-        Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+        Intent loginIntent = new Intent(MainActivity.this, AuthActivity.class);
         startActivity(loginIntent);
         finish();
     }

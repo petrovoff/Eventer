@@ -2,8 +2,13 @@ package com.example.eventer2.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -20,8 +25,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText mLoginEmailText;
     private EditText mLoginPasswordText;
+    private EditText mLoginNumberText;
     private TextView mSignUpView;
     private Button mLoginButton;
+    private ProgressBar mLoginPhoneProgress;
     private ProgressBar mLoginProgress;
 
     FirebaseAuth mAuth;
@@ -34,10 +41,12 @@ public class LoginActivity extends AppCompatActivity {
         init();
 
         mSignUpView.setOnClickListener(v -> {
-            Intent regIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+            Intent regIntent = new Intent(LoginActivity.this, AuthActivity.class);
             startActivity(regIntent);
             finish();
         });
+
+
 
         mLoginButton.setOnClickListener(v -> {
             String loginEmail = mLoginEmailText.getText().toString();
@@ -63,8 +72,10 @@ public class LoginActivity extends AppCompatActivity {
     private void init(){
         mLoginEmailText = findViewById(R.id.login_email);
         mLoginPasswordText = findViewById(R.id.login_password);
+        mLoginNumberText = findViewById(R.id.login_phone);
         mSignUpView = findViewById(R.id.login_signup);
         mLoginButton = findViewById(R.id.login_btn);
+        mLoginPhoneProgress = findViewById(R.id.login_phone_progress);
         mLoginProgress = findViewById(R.id.login_progress);
 
         mAuth = FirebaseAuth.getInstance();

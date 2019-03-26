@@ -59,6 +59,9 @@ public class AccountFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_account, container, false);
 
+
+        mData = (ApplicationData) getActivity().getApplication();
+
         mName = view.findViewById(R.id.account_name);
         mPhone = view.findViewById(R.id.account_phone);
         mAccountImage = view.findViewById(R.id.account_image);
@@ -73,22 +76,31 @@ public class AccountFragment extends Fragment {
             mFirestore = FirebaseFirestore.getInstance();
             mAccountProgress.setVisibility(View.VISIBLE);
 
-                mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            userName = task.getResult().getString("name");
-                            userPhone = task.getResult().getString("phone");
-                            imageUri = task.getResult().getString("image");
+            userName = mData.getUserName();
+            userPhone = mData.getUserPhone();
+            imageUri = mData.getUserImageUri();
 
-                            mName.setText(userName);
-                            mPhone.setText(userPhone);
-
-                            Glide.with(AccountFragment.this).load(imageUri).into(mAccountImage);
-                        }
-                        mAccountProgress.setVisibility(View.INVISIBLE);
-                    }
-                });
+            //postavljanje podataka
+            mName.setText(userName);
+            mPhone.setText(userPhone);
+            Glide.with(AccountFragment.this).load(imageUri).into(mAccountImage);
+            mAccountProgress.setVisibility(View.INVISIBLE);
+//                mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                        if (task.isSuccessful()) {
+//                            userName = task.getResult().getString("name");
+//                            userPhone = task.getResult().getString("phone");
+//                            imageUri = task.getResult().getString("image");
+//
+//                            mName.setText(userName);
+//                            mPhone.setText(userPhone);
+//
+//                            Glide.with(AccountFragment.this).load(imageUri).into(mAccountImage);
+//                        }
+//                        mAccountProgress.setVisibility(View.INVISIBLE);
+//                    }
+//                });
 
             mDataBtn.setOnClickListener(v -> {
                 Intent setupIntent = new Intent(getActivity(), ProfileSetupActivity.class);

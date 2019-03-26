@@ -1,6 +1,5 @@
 package com.example.eventer2.activities;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -24,10 +23,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -39,9 +35,10 @@ import java.util.Map;
 
 public class ProfileSetupActivity extends AppCompatActivity {
 
-
+    private ApplicationData mData;
     private CircleImageView mUserImage;
-    private EditText mUserName;
+    private EditText mUsernameHolder;
+    private EditText mEmail;
     private EditText mNumber;
     private Button mSaveUserData;
     private ProgressBar mProgressBar;
@@ -49,6 +46,8 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
     private Uri mUserImageUri = null;
 
+    private String mUserPhone;
+    private String username;
     private String mUser_id;
     private String mInfo = "0";
     private boolean isChanged = false;
@@ -65,6 +64,18 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
         init();
 
+        username = mData.getUserName();
+        if(username != null){
+            mUsernameHolder.setText(username);
+//            mUsernameHolder.setEnabled(false);
+        }
+
+        mUserPhone = mData.getUserPhone();
+        if(mUserPhone != null) {
+            mNumber.setText(mUserPhone);
+            mNumber.setEnabled(false);
+        }
+
         mInfo = getIntent().getStringExtra("info");
         if(mInfo.equals("0")){
             mProgressDot1.setVisibility(View.INVISIBLE);
@@ -76,48 +87,43 @@ public class ProfileSetupActivity extends AppCompatActivity {
         mSaveUserData.setEnabled(false);
 
         if(mAuth.getCurrentUser() != null) {
-            mFirestore.collection("Users").document(mUser_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        //proverava da li je korisnik postavio sliku i korisnicko ime
-                        if (task.getResult().exists()) {
+            mFirestore.collection("Users").document(mUser_id).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    //proverava da li je korisnik postavio sliku i korisnicko ime
+                    if (task.getResult().exists()) {
 
-                            String name = task.getResult().getString("name"); //name na firestore
-                            String phone = task.getResult().getString("phone"); //name na firestore
-                            String image = task.getResult().getString("image"); //url slike koju cuvamo na firestore
+                        String name = task.getResult().getString("name"); //name na firestore
+                        String phone = task.getResult().getString("phone"); //name na firestore
+                        String image = task.getResult().getString("image"); //url slike koju cuvamo na firestore
 
-                            mUserImageUri = Uri.parse(image); //lokalno cuvamo sliku da bismo mogli da samo ime
-                            mUserName.setText(name);
-                            mNumber.setText(phone);
+                        mUserImageUri = Uri.parse(image); //lokalno cuvamo sliku da bismo mogli da samo ime
+                        mUsernameHolder.setText(name);
+                        mNumber.setText(phone);
 
-                            RequestOptions placeholderRequest = new RequestOptions();
-                            placeholderRequest.placeholder(R.drawable.icon_profile);
+                        RequestOptions placeholderRequest = new RequestOptions();
+                        placeholderRequest.placeholder(R.drawable.icon_profile);
 
-                            Glide.with(ProfileSetupActivity.this).setDefaultRequestOptions(placeholderRequest)
-                                    .load(image).into(mUserImage);
-                        } else {
-                            if(mInfo.equals("1")) {
-                                Toast.makeText(ProfileSetupActivity.this, "Data doesn't Exists", Toast.LENGTH_LONG).show();
-                            }else {
-                                Toast.makeText(ProfileSetupActivity.this, "Set your data!", Toast.LENGTH_LONG).show();
-                            }
-                        }
+                        Glide.with(ProfileSetupActivity.this).setDefaultRequestOptions(placeholderRequest)
+                                .load(image).into(mUserImage);
                     } else {
-                        Toast.makeText(ProfileSetupActivity.this, "Firestore Retrieve Error", Toast.LENGTH_LONG).show();
+                        if(mInfo.equals("1")) {
+                            Toast.makeText(ProfileSetupActivity.this, "Data doesn't Exists", Toast.LENGTH_LONG).show();
+                        }else {
+                            Toast.makeText(ProfileSetupActivity.this, "Set your data!", Toast.LENGTH_LONG).show();
+                        }
                     }
-                    mProgressBar.setVisibility(View.INVISIBLE);
-                    mSaveUserData.setEnabled(true);
+                } else {
+                    Toast.makeText(ProfileSetupActivity.this, "Firestore Retrieve Error", Toast.LENGTH_LONG).show();
                 }
+                mProgressBar.setVisibility(View.INVISIBLE);
+                mSaveUserData.setEnabled(true);
             });
 
             //proveravamo da li u bazi postoje podaci, ako ne postoje cuvamo nove
 
             mSaveUserData.setOnClickListener(v -> {
-                final String user_name = mUserName.getText().toString();
-                final String phone_number = mNumber.getText().toString();
-
-                String finalPhone = changeNumber(phone_number);
+                final String user_name = mUsernameHolder.getText().toString();
+                String user_email = mEmail.getText().toString();
 
                 if (!TextUtils.isEmpty(user_name) && mUserImageUri != null) {
                     mProgressBar.setVisibility(View.VISIBLE);
@@ -128,13 +134,13 @@ public class ProfileSetupActivity extends AppCompatActivity {
                         final StorageReference image_path = mStorageReference.child("profile_images").child(mUser_id + ".jpg");
                         image_path.putFile(mUserImageUri).addOnSuccessListener(taskSnapshot ->
                                 image_path.getDownloadUrl().addOnSuccessListener(uri -> {
-                                    storeFirestore(uri, user_name, finalPhone); //skidamo url iz baze i cuvamo u uri
+                                    storeFirestore(uri, user_name, mUserPhone, user_email); //skidamo url iz baze i cuvamo u uri
                                 })).addOnFailureListener(e -> {
                                     Toast.makeText(ProfileSetupActivity.this, "The image is not Uploaded", Toast.LENGTH_LONG).show();
                                     mProgressBar.setVisibility(View.INVISIBLE);
                                 });
                     } else {
-                        storeFirestore(null, user_name, finalPhone);
+                        storeFirestore(null, user_name, mUserPhone, user_email);
                     }
                 }
             });
@@ -159,9 +165,11 @@ public class ProfileSetupActivity extends AppCompatActivity {
     }
 
     private void init(){
+        mData = (ApplicationData)getApplication();
         mUserImage = findViewById(R.id.user_image);
-        mUserName = findViewById(R.id.user_full_name);
+        mUsernameHolder = findViewById(R.id.username);
         mNumber = findViewById(R.id.user_phone_number);
+        mEmail = findViewById(R.id.user_email);
         mSaveUserData = findViewById(R.id.user_save_data);
         mProgressBar = findViewById(R.id.setup_progress);
         mProgressDot1 = findViewById(R.id.profile_progress_dot1);
@@ -200,7 +208,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 .start(ProfileSetupActivity.this);
     }
 
-    private void storeFirestore(Uri uri, String user_name, String phone_number){
+    private void storeFirestore(Uri uri, String user_name, String phone_number, String email){
 
         Uri download_uri;
         if(uri != null){
@@ -215,6 +223,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         userMap.put("image", download_uri.toString());
         userMap.put("demoId", phone_number + "blabla");
         userMap.put("userId", mUser_id);
+        userMap.put("email", email);
 
         Map<String, String> contactMap = new HashMap<>();
         contactMap.put("name", user_name );

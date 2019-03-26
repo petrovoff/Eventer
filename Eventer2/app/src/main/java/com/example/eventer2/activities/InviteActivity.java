@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.eventer2.R;
+import com.example.eventer2.adapters.InvitedBaseAdapter;
 import com.example.eventer2.dialogs.DialogSms;
 import com.example.eventer2.adapters.InvitedFriendsAdapter;
 import com.example.eventer2.models.InvitedFriend;
@@ -33,13 +34,12 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
     private RecyclerView inviteFriendsView;
     private InvitedFriendsAdapter mAdapter;
+    private InvitedBaseAdapter mBaseAdapter;
 
     private Toolbar inviteToolbar;
     private Button invitePhoneBtn;
     private Button inviteBaseBtn;
     private Button inviteSkipBtn;
-    private Button mSendSms;
-    private Button mEnableSms;
 
     private String name;
     private String phone;
@@ -66,14 +66,14 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
 
         list = new ArrayList<>();
-        failList = new ArrayList<>();
         //prosledjujemo listu kroz metodu getContacts() prilikom prvog startovanja activitija
         layoutManager = new LinearLayoutManager(this);
         if (mAuth.getCurrentUser() != null) {
             inviteFriendsView.setLayoutManager(layoutManager);
+
+
             mAdapter = new InvitedFriendsAdapter(getContacts(), this);
-            inviteFriendsView.setAdapter(mAdapter);
-            mAdapter.notifyDataSetChanged();
+            mBaseAdapter = new InvitedBaseAdapter(list, this);
         }
 
         inviteSkipBtn.setOnClickListener(v -> {
@@ -102,14 +102,21 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
                             if (number != null) {
                                 if (number.equals(finalPhone)) {
+                                    for (InvitedFriend invitedFriend : list) {
+                                        if (invitedFriend.getNumber().equals(finalPhone)) {
+                                            list.remove(invitedFriend);
+                                            break;
+                                        }
+                                    }
                                     list.add(new InvitedFriend(name, finalPhone, eventId, id, userId));
                                 }
                             }
                         }
                     }
                 }
-                mAdapter.updateList(list);
-                mAdapter.notifyDataSetChanged();
+                mBaseAdapter.updateList(list);
+                inviteFriendsView.setAdapter(mBaseAdapter);
+                mBaseAdapter.notifyDataSetChanged();
 
             });
         });
@@ -121,18 +128,27 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
             mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {
                 cursor = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.Contacts.DISPLAY_NAME);
 
-                cursor.moveToFirst();
-                while (cursor.moveToNext()) {
-                    name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                    phone = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)).replace(" ", "");
+                if(cursor!=null) {
+                    cursor.moveToPosition(-1);
+                    while (cursor.moveToNext()) {
+                        name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                        phone = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)).replace(" ", "");
 
-                    String finalPhone = changeNumber(phone);
-                    String id = finalPhone+"blabla";
-
-                    list.add(new InvitedFriend(name, changeNumber(phone), eventId, id));
+                        String finalPhone = changeNumber(phone);
+                        String id = finalPhone + "blabla";
+                        for (InvitedFriend invitedFriend : list) {
+                            if (invitedFriend.getNumber().equals(finalPhone)) {
+                                list.remove(invitedFriend);
+                                break;
+                            }
+                        }
+                        list.add(new InvitedFriend(name, changeNumber(phone), eventId, id));
+                    }
                 }
 
+
                 mAdapter.updateList(list);
+                inviteFriendsView.setAdapter(mAdapter);
                 mAdapter.notifyDataSetChanged();
             });
         });
@@ -147,49 +163,49 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         }
 
 
-        mEnableSms.setOnClickListener(v -> {
-            if(!mConfirmed) {
-                openDialog();
-            }
+//        mEnableSms.setOnClickListener(v -> {
+//            if(!mConfirmed) {
+//                openDialog();
+//            }
 
-            Handler handler = new Handler();
-            handler.postDelayed(() -> {
-                if(mConfirmed){
-                    mEnableSms.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-                    mEnableSms.setTextColor(getResources().getColor(R.color.colorPrimary));
-                    mEnableSms.setText("Enabled");
-                    Toast.makeText(this, "Now you can invite friends!", Toast.LENGTH_SHORT).show();
-                }else {
-                    mEnableSms.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                    mEnableSms.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
-                    mEnableSms.setText("Disabled");
-                }
+//            Handler handler = new Handler();
+//            handler.postDelayed(() -> {
+//                if(mConfirmed){
+//                    mEnableSms.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+//                    mEnableSms.setTextColor(getResources().getColor(R.color.colorPrimary));
+//                    mEnableSms.setText("Enabled");
+//                    Toast.makeText(this, "Now you can invite friends!", Toast.LENGTH_SHORT).show();
+//                }else {
+//                    mEnableSms.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+//                    mEnableSms.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+//                    mEnableSms.setText("Disabled");
+//                }
+//
+//            }, 5000);
+//
+//        });
 
-            }, 5000);
-
-        });
-
-        mSendSms.setOnClickListener(v -> {
-            mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    if(task.getResult().exists()){
-                        String name = task.getResult().getString("name");
-                        String location = task.getResult().getString("eventLocation");
-                        String startDate = task.getResult().getString("startDate");
-                        String startTime = task.getResult().getString("startTime");
-
-                        if(mConfirmed) {
-                            onSendSms(name, location, startDate, startTime);
-                            Toast.makeText(this, "Sending...", Toast.LENGTH_LONG).show();
-                        }else {
-                            Toast.makeText(this, "You must approve the sending of sms!", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-            });
-
-
-        });
+//        mSendSms.setOnClickListener(v -> {
+//            mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
+//                if(task.isSuccessful()){
+//                    if(task.getResult().exists()){
+//                        String name = task.getResult().getString("name");
+//                        String location = task.getResult().getString("eventLocation");
+//                        String startDate = task.getResult().getString("startDate");
+//                        String startTime = task.getResult().getString("startTime");
+//
+//                        if(mConfirmed) {
+//                            onSendSms(name, location, startDate, startTime);
+//                            Toast.makeText(this, "Sending...", Toast.LENGTH_LONG).show();
+//                        }else {
+//                            Toast.makeText(this, "You must approve the sending of sms!", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                }
+//            });
+//
+//
+//        });
     }
 
     private void init(){
@@ -201,8 +217,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         inviteFriendsView = findViewById(R.id.invite_list_view);
         inviteSkipBtn = findViewById(R.id.invite_skip_btn);
 
-        mSendSms = findViewById(R.id.invite_send_sms);
-        mEnableSms = findViewById(R.id.invite_enable_sms);
 
 
         eventId = getIntent().getStringExtra("eventId");
@@ -220,20 +234,28 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
         mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {
             cursor = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.Contacts.DISPLAY_NAME);
-            String id = null;
-            cursor.moveToFirst();
-            while (cursor.moveToNext()) {
-                name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                phone = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)).replace(" ", "");
 
+            if(cursor!=null) {
+                cursor.moveToPosition(-1);
+                while (cursor.moveToNext()) {
+                    name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                    phone = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)).replace(" ", "");
 
-                String finalPhone = changeNumber(phone);
-                id = finalPhone+"blabla";
-
-                list.add(new InvitedFriend(name, changeNumber(phone), eventId, id));
+                    String finalPhone = changeNumber(phone);
+                    String id = finalPhone + "blabla";
+                    for (InvitedFriend invitedFriend : list) {
+                        if (invitedFriend.getNumber().equals(finalPhone)) {
+                            list.remove(invitedFriend);
+                            break;
+                        }
+                    }
+                    list.add(new InvitedFriend(name, changeNumber(phone), eventId, id));
+                }
             }
 
+
             mAdapter.updateList(list);
+            inviteFriendsView.setAdapter(mAdapter);
             mAdapter.notifyDataSetChanged();
         });
         return list;
