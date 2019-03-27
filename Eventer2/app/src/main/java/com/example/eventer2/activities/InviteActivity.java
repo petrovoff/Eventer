@@ -44,11 +44,9 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
     private String name;
     private String phone;
     private List<InvitedFriend> list;
-    private List<InvitedFriend> failList;
     private Cursor cursor;
     private RecyclerView.LayoutManager layoutManager;
     public static Boolean onOff;
-    private boolean mConfirmed;
 
 
     private String eventId;
@@ -162,50 +160,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
             mAdapter.notifyDataSetChanged();
         }
 
-
-//        mEnableSms.setOnClickListener(v -> {
-//            if(!mConfirmed) {
-//                openDialog();
-//            }
-
-//            Handler handler = new Handler();
-//            handler.postDelayed(() -> {
-//                if(mConfirmed){
-//                    mEnableSms.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-//                    mEnableSms.setTextColor(getResources().getColor(R.color.colorPrimary));
-//                    mEnableSms.setText("Enabled");
-//                    Toast.makeText(this, "Now you can invite friends!", Toast.LENGTH_SHORT).show();
-//                }else {
-//                    mEnableSms.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-//                    mEnableSms.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
-//                    mEnableSms.setText("Disabled");
-//                }
-//
-//            }, 5000);
-//
-//        });
-
-//        mSendSms.setOnClickListener(v -> {
-//            mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
-//                if(task.isSuccessful()){
-//                    if(task.getResult().exists()){
-//                        String name = task.getResult().getString("name");
-//                        String location = task.getResult().getString("eventLocation");
-//                        String startDate = task.getResult().getString("startDate");
-//                        String startTime = task.getResult().getString("startTime");
-//
-//                        if(mConfirmed) {
-//                            onSendSms(name, location, startDate, startTime);
-//                            Toast.makeText(this, "Sending...", Toast.LENGTH_LONG).show();
-//                        }else {
-//                            Toast.makeText(this, "You must approve the sending of sms!", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                }
-//            });
-//
-//
-//        });
     }
 
     private void init(){
@@ -224,7 +178,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         mAuth = FirebaseAuth.getInstance();
 
         onOff = true;
-        mConfirmed = false;
     }
 
     //ucitava se prvi put lista sa svim korisnicima
@@ -329,22 +282,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         return phone;
     }
 
-//    public void onSendSms(View v){ //slanje uz korisnikovo odobrenje
-////        String number =  "+381645871290";
-////        Intent smsIntent = new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", number, null));
-////        smsIntent.putExtra("sms_body", "Pozz");
-////        startActivity(smsIntent);
-////    }
-
-    public void onSendSms(String eventName, String location, String startDate, String startTime){
-        SmsManager sm = SmsManager.getDefault();
-        String number = "+381645871290";
-//        String number = "+381645741511";
-        String msg = "Invite to: " + eventName + "\n" + location + "\n" + startDate + " - " + startTime + "\n via Eventer";
-        sm.sendTextMessage(number,null, msg,null,null);
-    }
-
-
     public void openDialog(){
         DialogSms dialogSms = new DialogSms();
         dialogSms.show(getSupportFragmentManager(), "sms dialog");
@@ -352,7 +289,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
     @Override
     public void onConfirm(boolean change) {
-        mConfirmed = change;
     }
 
 }

@@ -2,8 +2,10 @@ package com.example.eventer2.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -27,6 +29,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.rilixtech.CountryCodePicker;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +37,8 @@ public class AuthActivity extends AppCompatActivity {
 
     private ApplicationData mData;
 
-    private EditText mPhoneNumberInput;
+    private CountryCodePicker cpp;
+    private AppCompatEditText mPhoneNumberInput;
     private TextView mErrorTextView;
     private Button mVerificationBtn;
     private ProgressBar mNumberProgress;
@@ -55,7 +59,7 @@ public class AuthActivity extends AppCompatActivity {
         setContentView(R.layout.activity_auth);
         init();
 
-        TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
@@ -69,23 +73,29 @@ public class AuthActivity extends AppCompatActivity {
             }else {
                 String number = tm.getLine1Number();
                 String country = tm.getSimCountryIso();
+                String getSimSerialNumber = tm.getSimSerialNumber();
 
                 Log.i("SIM", "Number: " + number);
-                Log.i("SIM", "Country: " + country);
+                Log.i("SIM", "Serial: " + getSimSerialNumber);
 //                mPhoneNumberInput.setText(number);
-
             }
+
         }
 
+        if(mData.getUserPhone() != null){
+            mPhoneNumberInput.setText(mData.getUserPhone());
+        }
 
         mVerificationBtn.setOnClickListener(v -> {
+
+            cpp.registerPhoneNumberTextView(mPhoneNumberInput);
+
 
             mNumberProgress.setVisibility(View.VISIBLE);
             mPhoneNumberInput.setEnabled(false);
 
 
-
-            phoneNumber = mPhoneNumberInput.getText().toString();
+            phoneNumber = cpp.getNumber();
             //number auth
             PhoneAuthProvider.getInstance().verifyPhoneNumber(
                     phoneNumber,
@@ -169,6 +179,8 @@ public class AuthActivity extends AppCompatActivity {
 
     private void init(){
         mData = (ApplicationData) getApplication();
+
+        cpp = findViewById(R.id.ccp);
         mPhoneNumberInput = findViewById(R.id.auth_number_input);
         mErrorTextView = findViewById(R.id.auth_error_textview);
         mVerificationBtn = findViewById(R.id.auth_btn);

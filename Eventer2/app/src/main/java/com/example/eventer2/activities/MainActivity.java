@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
     private void logOut(){
         mAuth.signOut();
         mData.setUserName(null);
-        mData.setUserPhone(null);
+//        mData.setUserPhone(null);
         sendToLogin();
     }
 
