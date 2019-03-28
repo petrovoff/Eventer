@@ -9,6 +9,7 @@ public class ApplicationData extends Application {
     private String eventLocation;
     private String userName;
     private String userPhone;
+    private boolean change;
 
     public void setImageUri(Uri eventImageUri) {
         eventImageUri = eventImageUri;
@@ -56,5 +57,13 @@ public class ApplicationData extends Application {
 
     public void setUserPhone(String userPhone) {
         this.userPhone = userPhone;
+    }
+
+    public void setChange(boolean change) {
+        change = change;
+    }
+
+    public boolean getChange() {
+        return change;
     }
 }

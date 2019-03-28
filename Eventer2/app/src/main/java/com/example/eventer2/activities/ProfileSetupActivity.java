@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -40,6 +41,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
     private EditText mUsernameHolder;
     private EditText mEmail;
     private EditText mNumber;
+    private TextView mMessage;
     private Button mSaveUserData;
     private ProgressBar mProgressBar;
     private ImageView mProgressDot1, mProgressDot2;
@@ -64,19 +66,25 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
         init();
 
+        mInfo = getIntent().getStringExtra("info");
+
         username = mData.getUserName();
         if(username != null){
             mUsernameHolder.setText(username);
 //            mUsernameHolder.setEnabled(false);
+            if(mInfo.equals("1")) {
+                mMessage.setVisibility(View.VISIBLE);
+            }
         }
 
         mUserPhone = mData.getUserPhone();
         if(mUserPhone != null) {
+
             mNumber.setText(mUserPhone);
             mNumber.setEnabled(false);
         }
 
-        mInfo = getIntent().getStringExtra("info");
+
         if(mInfo.equals("0")){
             mProgressDot1.setVisibility(View.INVISIBLE);
             mProgressDot2.setVisibility(View.INVISIBLE);
@@ -170,6 +178,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         mUsernameHolder = findViewById(R.id.username);
         mNumber = findViewById(R.id.user_phone_number);
         mEmail = findViewById(R.id.user_email);
+        mMessage = findViewById(R.id.user_back_msg);
         mSaveUserData = findViewById(R.id.user_save_data);
         mProgressBar = findViewById(R.id.setup_progress);
         mProgressDot1 = findViewById(R.id.profile_progress_dot1);

@@ -239,7 +239,8 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         }
 
         public void onYesBtn(final String eventId, final String demoId, final String guestName, final String guestNumber, String userId){
-            yes_btn.setOnClickListener(v -> mFirestore.collection("Events/" + eventId + "/Guests").document(demoId)
+            yes_btn.setOnClickListener(v ->
+                    mFirestore.collection("Events/" + eventId + "/Guests").document(demoId)
                     .get().addOnCompleteListener(task -> {
                         if(!task.getResult().exists()){
                             Map<String, Object> guestMap = new HashMap<>();
@@ -269,7 +270,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                             guestMap.put("userId", userId);
                             guestMap.put("eventId", eventId);
                             guestMap.put("arrival", "Yes");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).set(guestMap);
+                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
                         }
                     }));
         }
@@ -305,7 +306,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                             guestMap.put("userId", userId);
                             guestMap.put("eventId", eventId);
                             guestMap.put("arrival", "No");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).set(guestMap);
+                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
                         }
                     }));
         }
@@ -341,7 +342,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                             guestMap.put("userId", userId);
                             guestMap.put("eventId", eventId);
                             guestMap.put("arrival", "Maybe");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).set(guestMap);
+                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
                         }
                     }));
         }

@@ -14,9 +14,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.GoogleMapAndPlaces.InfoMapActivity;
 import com.example.eventer2.R;
 import com.example.eventer2.adapters.GuestRecyclerAdapter;
+import com.example.eventer2.listeners.CustomItemListener;
+import com.example.eventer2.models.BooVariable;
 import com.example.eventer2.models.Guest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -38,6 +41,8 @@ public class EventInfoActivity extends AppCompatActivity {
     final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
     final Date today = new Date();
 
+    private ApplicationData mData;
+
     private TextView mName;
     private TextView mTheme;
     private TextView mLocation;
@@ -47,7 +52,6 @@ public class EventInfoActivity extends AppCompatActivity {
     private ImageView mInviteBtn;
     private ImageView mExportBtn;
     private Button mEventerBtn, mAdminBtn;
-
 
     private String mEventId;
     private String currentUserId;
@@ -75,9 +79,6 @@ public class EventInfoActivity extends AppCompatActivity {
 
         mEventId = getIntent().getStringExtra("eventId");
         currentUserId = mAuth.getCurrentUser().getUid();
-
-
-
 
         mFirestore.collection("Events").document(mEventId).get().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
@@ -196,7 +197,25 @@ public class EventInfoActivity extends AppCompatActivity {
         });
 
 
-        guest_adapter = new GuestRecyclerAdapter(guest_list);
+        guest_adapter = new GuestRecyclerAdapter(guest_list, (v, position) -> {
+            guest_list.clear();
+            mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
+                if(queryDocumentSnapshots != null){
+                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
+                        if(doc.getType() == DocumentChange.Type.ADDED){
+
+                            Guest guests = doc.getDocument().toObject(Guest.class);
+                            String guestId = guests.getUserId();
+                            if(guestId == null){
+                                guest_list.add(guests);
+                                guest_adapter.updateList(guest_list);
+                            }
+                        }
+                    }
+
+                }
+            });
+        });
         guest_recycler_view.setAdapter(guest_adapter);
         guest_adapter.notifyDataSetChanged();
 
@@ -213,7 +232,13 @@ public class EventInfoActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
     private void init(){
+        mData = (ApplicationData) getApplication();
         mName = findViewById(R.id.event_info_name);
         mTheme = findViewById(R.id.event_info_theme);
         mLocation = findViewById(R.id.info_location);

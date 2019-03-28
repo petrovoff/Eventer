@@ -360,8 +360,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private void onSaveBtn(){
 
         if(mLocation!= null) {
-            String location = mLocation;
+            String location = mLocation.trim();
             Toast.makeText(this, "Location:" + mLocation, Toast.LENGTH_SHORT).show();
+
             mData.setEventLocation(location);
         }else {
             Toast.makeText(this, "Error.", Toast.LENGTH_SHORT).show();

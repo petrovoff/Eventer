@@ -196,6 +196,7 @@ public class NewEventActivity extends AppCompatActivity {
                                 eventMap.put("authorId", mCurrentUserId);
 
                                 mApplicationData.setImageUri(null);
+                                mApplicationData.setEventLocation(null);
 
                                 mFirebaseFirestore.collection("Events").document(eventId).set(eventMap).addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
@@ -345,5 +346,11 @@ public class NewEventActivity extends AppCompatActivity {
             Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
         }
         return false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        mApplicationData.setEventLocation("");
     }
 }
