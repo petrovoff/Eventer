@@ -1,5 +1,6 @@
 package com.example.eventer2.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -25,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdapter.ViewHolder> {
@@ -52,7 +55,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
-        holder.setIsRecyclable(false);
+//        holder.setIsRecyclable(false);
 
         final Date today = new Date();
         final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
@@ -102,21 +105,40 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                                 if (userTask.getResult().exists()) {
                                     String arrival = userTask.getResult().getString("arrival");
 
-                                    if (arrival != null) {
-                                        if (arrival.equals("Yes")) {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                                holder.yes_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-                                            }
-                                        } else if (arrival.equals("No")) {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                                holder.no_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-                                            }
-                                        } else if (arrival.equals("Maybe")) {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                                holder.maybe_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-                                            }
+
+                                    if(arrival != null) {
+                                        switch (arrival) {
+                                            case "Yes":
+                                                holder.yes_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorAccent));
+                                                holder.no_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                                                holder.maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                                                break;
+                                            case "No":
+                                                holder.yes_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                                                holder.no_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorAccent));
+                                                holder.maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                                                break;
+                                            case "Maybe":
+                                                holder.yes_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                                                holder.no_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                                                holder.maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorAccent));
                                         }
                                     }
+//                                    if (arrival != null) {
+//                                        if (arrival.equals("Yes")) {
+//                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                                holder.yes_btn.setTextColor(mContext.getColor(R.color.colorAccent));
+//                                            }
+//                                        } else if (arrival.equals("No")) {
+//                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                                holder.no_btn.setTextColor(mContext.getColor(R.color.colorAccent));
+//                                            }
+//                                        } else if (arrival.equals("Maybe")) {
+//                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                                holder.maybe_btn.setTextColor(mContext.getColor(R.color.colorAccent));
+//                                            }
+//                                        }
+//                                    }
                                 }
                             }
                         });
@@ -242,108 +264,64 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
             yes_btn.setOnClickListener(v ->
                     mFirestore.collection("Events/" + eventId + "/Guests").document(demoId)
                     .get().addOnCompleteListener(task -> {
-                        if(!task.getResult().exists()){
-                            Map<String, Object> guestMap = new HashMap<>();
-                            guestMap.put("name", guestName);
-                            guestMap.put("number", guestNumber);
-                            guestMap.put("demoId", demoId);
-                            guestMap.put("userId", userId);
-                            guestMap.put("eventId", eventId);
-                            guestMap.put("arrival", "Yes");
-
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).set(guestMap);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                yes_btn.setTextColor(mContext.getColor(R.color.colorAccent));
+                        if(task.isSuccessful()){
+                            if(task.getResult().exists()){
+                                Map<String, Object> guestMap = new HashMap<>();
+                                guestMap.put("name", guestName);
+                                guestMap.put("number", guestNumber);
+                                guestMap.put("demoId", demoId);
+                                guestMap.put("userId", userId);
+                                guestMap.put("eventId", eventId);
+                                guestMap.put("arrival", "Yes");
+                                mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
                             }
-                        }else {
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).delete();
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                yes_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-                                no_btn.setTextColor(mContext.getColor(R.color.colorPrimaryDark));
-                                maybe_btn.setTextColor(mContext.getColor(R.color.colorPrimaryDark));
-                            }
-
-                            Map<String, Object> guestMap = new HashMap<>();
-                            guestMap.put("name", guestName);
-                            guestMap.put("number", guestNumber);
-                            guestMap.put("demoId", demoId);
-                            guestMap.put("userId", userId);
-                            guestMap.put("eventId", eventId);
-                            guestMap.put("arrival", "Yes");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
                         }
+                        yes_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorAccent));
+                        no_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                        maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
                     }));
         }
 
         public void onNoBtn(final String eventId, final String demoId, final String guestName, final String guestNumber, String userId){
             no_btn.setOnClickListener(v -> mFirestore.collection("Events/" + eventId + "/Guests").document(demoId)
                     .get().addOnCompleteListener(task -> {
-
-                        if(!task.getResult().exists()){
-                            Map<String, Object> guestMap = new HashMap<>();
-                            guestMap.put("name", guestName);
-                            guestMap.put("number", guestNumber);
-                            guestMap.put("demoId", demoId);
-                            guestMap.put("userId", userId);
-                            guestMap.put("eventId", eventId);
-                            guestMap.put("arrival", "No");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).set(guestMap);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                no_btn.setTextColor(mContext.getColor(R.color.colorAccent));
+                        if(task.isSuccessful()) {
+                            if (task.getResult().exists()) {
+                                Map<String, Object> guestMap = new HashMap<>();
+                                guestMap.put("name", guestName);
+                                guestMap.put("number", guestNumber);
+                                guestMap.put("demoId", demoId);
+                                guestMap.put("userId", userId);
+                                guestMap.put("eventId", eventId);
+                                guestMap.put("arrival", "No");
+                                mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
                             }
-                        }else {
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).delete();
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                yes_btn.setTextColor(mContext.getColor(R.color.colorPrimaryDark));
-                                no_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-                                maybe_btn.setTextColor(mContext.getColor(R.color.colorPrimaryDark));
-                            }
-
-                            Map<String, Object> guestMap = new HashMap<>();
-                            guestMap.put("name", guestName);
-                            guestMap.put("number", guestNumber);
-                            guestMap.put("demoId", demoId);
-                            guestMap.put("userId", userId);
-                            guestMap.put("eventId", eventId);
-                            guestMap.put("arrival", "No");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
                         }
+                        yes_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                        no_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorAccent));
+                        maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
                     }));
         }
-
         public void onMaybeBtn(final String eventId, final String demoId, final String guestName, final String guestNumber, String userId){
             maybe_btn.setOnClickListener(v ->
                     mFirestore.collection("Events/" + eventId + "/Guests").document(demoId)
                     .get().addOnCompleteListener(task -> {
-                        if(!task.getResult().exists()){
-                            Map<String, Object> guestMap = new HashMap<>();
-                            guestMap.put("name", guestName);
-                            guestMap.put("number", guestNumber);
-                            guestMap.put("demoId", demoId);
-                            guestMap.put("userId", userId);
-                            guestMap.put("eventId", eventId);
-                            guestMap.put("arrival", "Maybe");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).set(guestMap);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                maybe_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-                            }
-                        }else {
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).delete();
-                            Map<String, Object> guestMap = new HashMap<>();
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                yes_btn.setTextColor(mContext.getColor(R.color.colorPrimaryDark));
-                                no_btn.setTextColor(mContext.getColor(R.color.colorPrimaryDark));
-                                maybe_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-                            }
+                        if(task.isSuccessful()) {
+                            if (task.getResult().exists()) {
+                                Map<String, Object> guestMap = new HashMap<>();
 
-                            guestMap.put("name", guestName);
-                            guestMap.put("number", guestNumber);
-                            guestMap.put("demoId", demoId);
-                            guestMap.put("userId", userId);
-                            guestMap.put("eventId", eventId);
-                            guestMap.put("arrival", "Maybe");
-                            mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
+                                guestMap.put("name", guestName);
+                                guestMap.put("number", guestNumber);
+                                guestMap.put("demoId", demoId);
+                                guestMap.put("userId", userId);
+                                guestMap.put("eventId", eventId);
+                                guestMap.put("arrival", "Maybe");
+                                mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap);
+                            }
                         }
+                        yes_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                        no_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
+                        maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorAccent));
                     }));
         }
 

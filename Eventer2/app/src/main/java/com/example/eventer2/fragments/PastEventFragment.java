@@ -54,7 +54,7 @@ public class PastEventFragment extends Fragment {
         mEventList = new ArrayList<>();
         mEventRecyclerView = mView.findViewById(R.id.past_event_list_view);
         today = new Date();
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -62,9 +62,22 @@ public class PastEventFragment extends Fragment {
         mEventRecyclerView.setLayoutManager(new LinearLayoutManager(container.getContext()));
         mEventRecyclerView.setAdapter(mEventRecyclerAdapter);
 
-        String currentUserId = mAuth.getCurrentUser().getUid();
+
+
+
+
+        return mView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
 
         if(mAuth.getCurrentUser() != null){
+
+            String currentUserId = mAuth.getCurrentUser().getUid();
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             mFirestore = FirebaseFirestore.getInstance();
 
             mFirestore.collection("Events").orderBy("startDate", Query.Direction.ASCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
@@ -146,8 +159,5 @@ public class PastEventFragment extends Fragment {
                 }
             });
         }
-
-        return mView;
     }
-
 }

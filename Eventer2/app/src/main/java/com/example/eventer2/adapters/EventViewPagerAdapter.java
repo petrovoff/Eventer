@@ -20,6 +20,7 @@ public class EventViewPagerAdapter extends FragmentPagerAdapter {
     @NonNull
     @Override
     public Fragment getItem(int position) {
+
         return mFragments.get(position);
     }
 

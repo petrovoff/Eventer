@@ -6,10 +6,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,7 +27,10 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.model.Document;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -52,6 +57,7 @@ public class EventInfoActivity extends AppCompatActivity {
     private ImageView mInviteBtn;
     private ImageView mExportBtn;
     private Button mEventerBtn, mAdminBtn;
+    private ProgressBar mProgressBar;
 
     private String mEventId;
     private String currentUserId;
@@ -133,27 +139,11 @@ public class EventInfoActivity extends AppCompatActivity {
         });
 
         //prikazivanje gostiju
-        onLoadGuests();
+
 
         mEventerBtn.setOnClickListener(v -> {
-            guest_list.clear();
-            mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
-                if(queryDocumentSnapshots != null){
-                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
-                        if(doc.getType() == DocumentChange.Type.ADDED){
+            inBackground("eventer");
 
-                            Guest guests = doc.getDocument().toObject(Guest.class);
-                            String guestId = guests.getUserId();
-
-                            if(guestId != null){
-                                guest_list.add(guests);
-                                guest_adapter.notifyDataSetChanged();
-                            }
-
-                        }
-                    }
-                }
-            });
 
             mEventerBtn.setEnabled(false);
             mAdminBtn.setEnabled(true);
@@ -168,23 +158,8 @@ public class EventInfoActivity extends AppCompatActivity {
         });
 
         mAdminBtn.setOnClickListener(v -> {
-            guest_list.clear();
-            mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
-                if(queryDocumentSnapshots != null){
-                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
-                        if(doc.getType() == DocumentChange.Type.ADDED){
+            inBackground("admin");
 
-                            Guest guests = doc.getDocument().toObject(Guest.class);
-                            String guestId = guests.getUserId();
-                            if(guestId == null){
-                                guest_list.add(guests);
-                                guest_adapter.notifyDataSetChanged();
-                            }
-                        }
-                    }
-
-                }
-            });
             mEventerBtn.setEnabled(true);
             mAdminBtn.setEnabled(false);
 
@@ -235,6 +210,7 @@ public class EventInfoActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        onLoadGuests();
     }
 
     private void init(){
@@ -249,6 +225,7 @@ public class EventInfoActivity extends AppCompatActivity {
         mInviteBtn = findViewById(R.id.info_invate_friends);
         mImageView = findViewById(R.id.event_info_bg);
         mExportBtn = findViewById(R.id.export_event_btn);
+        mProgressBar = findViewById(R.id.event_info_progress);
 
         mEventerBtn = findViewById(R.id.event_info_base_btn);
         mAdminBtn = findViewById(R.id.event_info_admin_btn);
@@ -267,24 +244,7 @@ public class EventInfoActivity extends AppCompatActivity {
 
 
     private List<Guest> onLoadGuests(){
-        guest_list.clear();
-        mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
-            if(queryDocumentSnapshots != null){
-                for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
-                    if(doc.getType() == DocumentChange.Type.ADDED){
-
-                        Guest guests = doc.getDocument().toObject(Guest.class);
-                        String guestId = guests.getUserId();
-
-                        if(guestId != null){
-                            guest_list.add(guests);
-                            guest_adapter.notifyDataSetChanged();
-                        }
-
-                    }
-                }
-            }
-        });
+        inBackground("first");
 
         return guest_list;
     }
@@ -305,4 +265,68 @@ public class EventInfoActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    private List<Guest> inBackground(String... s){
+
+
+            if(s[0].equals("eventer")) {
+                mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if(queryDocumentSnapshots != null){
+                        guest_list.clear();
+                        for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
+                            Guest guest=doc.toObject(Guest.class);
+                            String guestId = null;
+                            if (guest != null) {
+                                guestId = guest.getUserId();
+                                if(guestId != null){
+                                    guest_list.add(guest);
+                                    guest_adapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            else if(s[0].equals("admin")){
+                mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if(queryDocumentSnapshots != null){
+                        guest_list.clear();
+                        for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
+                            Guest guest = doc.toObject(Guest.class);
+                            String guestId = null;
+                            if (guest != null) {
+                                guestId = guest.getUserId();
+                                if(guestId == null){
+                                    guest_list.add(guest);
+                                    guest_adapter.notifyDataSetChanged();
+                                }
+                            }
+
+                        }
+                    }
+                });
+            }else if(s[0].equals("first")){
+
+                mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if(queryDocumentSnapshots != null){
+                        guest_list.clear();
+                        for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
+                            Guest guest=doc.toObject(Guest.class);
+                            String guestId = null;
+                            if (guest != null) {
+                                guestId = guest.getUserId();
+                                if(guestId != null){
+                                    guest_list.add(guest);
+                                    guest_adapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            return guest_list;
+    }
+
+
 }

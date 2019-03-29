@@ -16,6 +16,7 @@ import com.example.eventer2.adapters.EventRecyclerAdapter;
 import com.example.eventer2.models.Event;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -56,7 +57,7 @@ public class InvitedEventFragment extends Fragment {
         mEventList = new ArrayList<>();
         mEventRecyclerView = mView.findViewById(R.id.invited_event_list_view);
         today = new Date();
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
 
 
 
@@ -65,64 +66,102 @@ public class InvitedEventFragment extends Fragment {
         mEventRecyclerView.setLayoutManager(new LinearLayoutManager(container.getContext()));
         mEventRecyclerView.setAdapter(mEventRecyclerAdapter);
 
-        final String currentUserId = mAuth.getCurrentUser().getUid();
 
-        if(mAuth.getCurrentUser() != null){
-            mFirestore = FirebaseFirestore.getInstance();
-
-
-            mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(task -> {
-               if(task.isSuccessful()){
-                   if(task.getResult().exists()){
-                       String demoId = task.getResult().getString("demoId");
-
-                       mFirestore.collection("Events").orderBy("startDate", Query.Direction.ASCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
-                          if(queryDocumentSnapshots != null){
-                              for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()) {
-                                  if (doc.getType() == DocumentChange.Type.ADDED) {
-                                      String eventId = doc.getDocument().getId();
-
-                                      mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).get().addOnCompleteListener(guestTask -> {
-                                          if (guestTask.isSuccessful()) {
-                                              if (guestTask.getResult().exists()) {
-                                                  Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
-                                                  String authorId = event.getAuthorId();
-
-                                                  String endDate = event.getEndDate();
-                                                  String endTime = event.getEndTime();
-                                                  if (endDate != null) {
-                                                      try {
-                                                          Date eventEndDate = dateFormat.parse(endDate);
-
-                                                          if (today.before(eventEndDate)) {
-                                                              if (!currentUserId.equals(authorId)) {
-                                                                  mEventList.add(event);
-                                                                  mEventRecyclerAdapter.notifyDataSetChanged();
-                                                              }
-                                                          }
-                                                      } catch (ParseException e1) {
-                                                          e1.printStackTrace();
-                                                      }
-
-                                                  }
-
-                                              }
-                                          }
-                                      });
-                                  }
-                              }
-                          }
-                       });
-
-                   }
-               }
-
-
-            });
-
-
-        }
         return mView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+
+        if(mAuth.getCurrentUser() != null){
+
+            mFirestore = FirebaseFirestore.getInstance();
+            final String currentUserId = mAuth.getCurrentUser().getUid();
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+
+           mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").orderBy("startDate", Query.Direction.ASCENDING).get().addOnSuccessListener(queryDocumentSnapshots -> {
+              if(queryDocumentSnapshots != null){
+                  for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
+                      if(doc.getType()==DocumentChange.Type.ADDED){
+                          String eventId = doc.getDocument().getId();
+
+                          Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
+                          String authorId = event.getAuthorId();
+
+                          String endDate = event.getEndDate();
+                          if (endDate != null) {
+                              try {
+                                  Date eventEndDate = dateFormat.parse(endDate);
+
+                                  if (today.before(eventEndDate)) {
+                                      if (!currentUserId.equals(authorId)) {
+                                          mEventList.add(event);
+                                          mEventRecyclerAdapter.notifyDataSetChanged();
+                                      }
+                                  }
+                              } catch (ParseException e1) {
+                                  e1.printStackTrace();
+                              }
+
+                          }
+                      }
+                  }
+              }
+           });
+
+//            mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(task -> {
+//                if(task.isSuccessful()){
+//                    if(task.getResult().exists()){
+//                        String demoId = task.getResult().getString("demoId");
+//
+//                        mFirestore.collection("Events").orderBy("startDate", Query.Direction.ASCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
+//                            if(queryDocumentSnapshots != null){
+//                                for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()) {
+//                                    if (doc.getType() == DocumentChange.Type.ADDED) {
+//                                        String eventId = doc.getDocument().getId();
+//
+//                                        mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).get().addOnCompleteListener(guestTask -> {
+//                                            if (guestTask.isSuccessful()) {
+//                                                if (guestTask.getResult().exists()) {
+//                                                    Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
+//                                                    String authorId = event.getAuthorId();
+//
+//                                                    String endDate = event.getEndDate();
+//                                                    String endTime = event.getEndTime();
+//                                                    if (endDate != null) {
+//                                                        try {
+//                                                            Date eventEndDate = dateFormat.parse(endDate);
+//
+//                                                            if (today.before(eventEndDate)) {
+//                                                                if (!currentUserId.equals(authorId)) {
+//                                                                    mEventList.add(event);
+//                                                                    mEventRecyclerAdapter.notifyDataSetChanged();
+//                                                                }
+//                                                            }
+//                                                        } catch (ParseException e1) {
+//                                                            e1.printStackTrace();
+//                                                        }
+//
+//                                                    }
+//
+//                                                }
+//                                            }
+//                                        });
+//                                    }
+//                                }
+//                            }
+//                        });
+//
+//                    }
+//                }
+//
+//
+//            });
+
+        }
+    }
 }

@@ -48,10 +48,32 @@ public class MainActivity extends AppCompatActivity {
 
         init();
 
-        //fragments set
-        onStartFragment(mEventFragment);
-
         if(mAuth.getCurrentUser() != null) {
+
+        }
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null){
+            sendToLogin();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null){
+
+            //fragments set
+            onStartFragment(mEventFragment);
+
             mNewEventButton.setOnClickListener(v -> {
                 Intent newEventIntent = new Intent(MainActivity.this, NewEventActivity.class);
                 newEventIntent.putExtra("locationInfo", "0");
@@ -96,18 +118,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null){
-            sendToLogin();
-        }
-
 
     }
 

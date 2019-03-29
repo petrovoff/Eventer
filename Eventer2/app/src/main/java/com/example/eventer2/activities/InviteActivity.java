@@ -40,6 +40,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
     private Button invitePhoneBtn;
     private Button inviteBaseBtn;
     private Button inviteSkipBtn;
+    private Button inviteChecked;
 
     private String name;
     private String phone;
@@ -170,7 +171,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         inviteBaseBtn = findViewById(R.id.invite_btn_base);
         inviteFriendsView = findViewById(R.id.invite_list_view);
         inviteSkipBtn = findViewById(R.id.invite_skip_btn);
-
+        inviteChecked = findViewById(R.id.invite_checked);
 
 
         eventId = getIntent().getStringExtra("eventId");

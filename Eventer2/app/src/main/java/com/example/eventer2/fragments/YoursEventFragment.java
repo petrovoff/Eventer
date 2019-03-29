@@ -66,7 +66,7 @@ public class YoursEventFragment extends Fragment {
         mEventList = new ArrayList<>();
         mEventRecyclerView = mView.findViewById(R.id.your_event_list_view);
         today = new Date();
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -75,9 +75,16 @@ public class YoursEventFragment extends Fragment {
         mEventRecyclerView.setAdapter(mEventRecyclerAdapter);
 
 
+        return mView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
 
         if(mAuth.getCurrentUser() != null){
 
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             final String currentUserId = mAuth.getCurrentUser().getUid();
             mFirestore = FirebaseFirestore.getInstance();
             mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").orderBy("startDate", Query.Direction.ASCENDING).addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -117,7 +124,5 @@ public class YoursEventFragment extends Fragment {
                 }
             });
         }
-        return mView;
     }
-
 }
