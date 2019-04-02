@@ -14,9 +14,11 @@ import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.R;
 import com.example.eventer2.adapters.InvitedBaseAdapter;
 import com.example.eventer2.dialogs.DialogSms;
@@ -27,11 +29,13 @@ import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
 public class InviteActivity extends AppCompatActivity implements SearchView.OnQueryTextListener, DialogSms.DialogListener {
 
+    private ApplicationData mData;
     private RecyclerView inviteFriendsView;
     private InvitedFriendsAdapter mAdapter;
     private InvitedBaseAdapter mBaseAdapter;
@@ -41,6 +45,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
     private Button inviteBaseBtn;
     private Button inviteSkipBtn;
     private Button inviteChecked;
+    private Button inviteBaseChecked;
 
     private String name;
     private String phone;
@@ -78,10 +83,13 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         inviteSkipBtn.setOnClickListener(v -> {
             onSkipBtn();
         });
-
+        //lista iz baze
         inviteBaseBtn.setOnClickListener(v -> {
             onBaseBtn();
             list.clear();
+
+            inviteChecked.setVisibility(View.INVISIBLE);
+            inviteBaseChecked.setVisibility(View.VISIBLE);
             mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {
                 cursor = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.Contacts.DISPLAY_NAME);
 
@@ -119,10 +127,12 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
             });
         });
-
+        //lista iz imenika
         invitePhoneBtn.setOnClickListener(v -> {
             onPhoneBtn();
-            list.clear();
+
+            inviteChecked.setVisibility(View.VISIBLE);
+            inviteBaseChecked.setVisibility(View.INVISIBLE);
 
             mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {
                 cursor = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.Contacts.DISPLAY_NAME);
@@ -152,6 +162,38 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
             });
         });
 
+        //pozivanje iz imenika
+        inviteChecked.setOnClickListener(v -> {
+            int listSize = mData.friendsList.size();
+            for(int i = 0; i < listSize; i++){
+                String name = mData.friendsList.get(i).getName();
+                String number = mData.friendsList.get(i).getNumber();
+                String demo = mData.friendsList.get(i).getDemoId();
+                String id = mData.friendsList.get(i).getUserId();
+
+                addInUsers(name, number, demo, id);
+                addInEventsSMS(name, id,demo);
+
+            }
+            mData.friendsList.clear();
+        });
+
+        //pozivamo iz aplikacije
+        inviteBaseChecked.setOnClickListener(v -> {
+            int listSize = mData.friendsList.size();
+            for(int i = 0; i < listSize; i++){
+                String name = mData.friendsList.get(i).getName();
+                String number = mData.friendsList.get(i).getNumber();
+                String demo = mData.friendsList.get(i).getDemoId();
+                String id = mData.friendsList.get(i).getUserId();
+
+                addInUsers(name, number, demo, id);
+                addInEvents(id,demo);
+
+            }
+            mData.friendsList.clear();
+        });
+
         //prosledjujemo listu kao parametar
         layoutManager = new LinearLayoutManager(this);
         if (mAuth.getCurrentUser() != null) {
@@ -161,9 +203,14 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
             mAdapter.notifyDataSetChanged();
         }
 
+        if(mData.friendsList.size() != 0){
+            inviteChecked.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        }
+
     }
 
     private void init(){
+        mData = (ApplicationData) getApplication();
         inviteToolbar = findViewById(R.id.inviteToolbar);
         setSupportActionBar(inviteToolbar);
         Objects.requireNonNull(getSupportActionBar()).setTitle("Search");
@@ -172,6 +219,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         inviteFriendsView = findViewById(R.id.invite_list_view);
         inviteSkipBtn = findViewById(R.id.invite_skip_btn);
         inviteChecked = findViewById(R.id.invite_checked);
+        inviteBaseChecked = findViewById(R.id.invite_base_checked);
 
 
         eventId = getIntent().getStringExtra("eventId");
@@ -185,6 +233,8 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
     private List<InvitedFriend> getContacts () {
         onPhoneBtn();
         list.clear();
+        inviteChecked.setVisibility(View.VISIBLE);
+        inviteBaseChecked.setVisibility(View.INVISIBLE);
 
         mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {
             cursor = this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.Contacts.DISPLAY_NAME);
@@ -270,8 +320,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
     }
 
     private void onSkipBtn(){
-        Intent mainIntent = new Intent(this, MainActivity.class);
-        startActivity(mainIntent);
         finish();
     }
 
@@ -283,6 +331,99 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         return phone;
     }
 
+    public void onSendSms(String eventName, String location, String startDate, String startTime){
+        SmsManager sm = SmsManager.getDefault();
+        String number = "+381645871290";
+//        String number = "+381645741511";
+        String msg = "Invite to: " + eventName + "\n" + location;
+        sm.sendTextMessage(number,null, msg,null,null);
+    }
+
+    private void addInUsers(String name, String number, String demo, String id){
+
+        HashMap<String, Object> invitedMap = new HashMap<>();
+        invitedMap.put("name", name);
+        invitedMap.put("number", number);
+        invitedMap.put("demoId", demo);
+        invitedMap.put("userId", id);
+        invitedMap.put("eventId", eventId);
+        invitedMap.put("arrival", "No answer");
+
+        mFirestore.collection("Events/" + eventId + "/Guests").document(demo).set(invitedMap);
+        Toast.makeText(this, "Friends was invited!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void addInEvents(String id, String demo){
+        mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                if(task.getResult().exists()){
+                    String eventName = task.getResult().getString("name");
+                    String location = task.getResult().getString("eventLocation");
+                    String downloadUri = task.getResult().getString("image_url");
+                    String theme = task.getResult().getString("theme");
+                    String startDate = task.getResult().getString("startDate");
+                    String endDate = task.getResult().getString("endDate");
+                    String startTime = task.getResult().getString("startTime");
+                    String endTime = task.getResult().getString("endTime");
+                    String author = task.getResult().getString("authorId");
+
+                    HashMap<String, String> eventMap = new HashMap<>();
+                    eventMap.put("image_url", downloadUri);
+                    eventMap.put("name", eventName);
+                    eventMap.put("theme", theme);
+                    eventMap.put("eventLocation", location);
+                    eventMap.put("startDate", startDate);
+                    eventMap.put("endDate", endDate);
+                    eventMap.put("startTime", startTime);
+                    eventMap.put("endTime", endTime);
+                    eventMap.put("authorId", author);
+
+                    if(id != null){
+                        mFirestore.collection("Users/" + id + "/InvitedEvents").document(eventId).set(eventMap);
+                    }else {
+                        mFirestore.collection("WithoutAcc").document(demo).set(eventMap);
+                    }
+                }
+            }
+        });
+    }
+
+    private void addInEventsSMS(String name, String id, String demo){
+        mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                if(task.getResult().exists()){
+                    String eventName = task.getResult().getString("name");
+                    String location = task.getResult().getString("eventLocation");
+                    String downloadUri = task.getResult().getString("image_url");
+                    String theme = task.getResult().getString("theme");
+                    String startDate = task.getResult().getString("startDate");
+                    String endDate = task.getResult().getString("endDate");
+                    String startTime = task.getResult().getString("startTime");
+                    String endTime = task.getResult().getString("endTime");
+                    String author = task.getResult().getString("authorId");
+
+                    HashMap<String, String> eventMap = new HashMap<>();
+                    eventMap.put("image_url", downloadUri);
+                    eventMap.put("name", eventName);
+                    eventMap.put("theme", theme);
+                    eventMap.put("eventLocation", location);
+                    eventMap.put("startDate", startDate);
+                    eventMap.put("endDate", endDate);
+                    eventMap.put("startTime", startTime);
+                    eventMap.put("endTime", endTime);
+                    eventMap.put("authorId", author);
+
+                    onSendSms(name,location,startDate,startTime);
+                    if(id != null){
+                        mFirestore.collection("Users/" + id + "/InvitedEvents").document(eventId).set(eventMap);
+                    }else {
+                        mFirestore.collection("WithoutAcc").document(demo).set(eventMap);
+                    }
+                }
+            }
+        });
+    }
+
     public void openDialog(){
         DialogSms dialogSms = new DialogSms();
         dialogSms.show(getSupportFragmentManager(), "sms dialog");
@@ -292,4 +433,9 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
     public void onConfirm(boolean change) {
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+    }
 }

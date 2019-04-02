@@ -6,6 +6,7 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -58,29 +59,6 @@ public class AuthActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth);
         init();
-
-        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    Activity#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for Activity#requestPermissions for more details.
-                return;
-            }else {
-                String number = tm.getLine1Number();
-                String country = tm.getSimCountryIso();
-                String getSimSerialNumber = tm.getSimSerialNumber();
-
-                Log.i("SIM", "Number: " + number);
-                Log.i("SIM", "Serial: " + getSimSerialNumber);
-//                mPhoneNumberInput.setText(number);
-            }
-
-        }
 
         if(mData.getUserPhone() != null){
             mPhoneNumberInput.setText(mData.getUserPhone());
@@ -190,4 +168,5 @@ public class AuthActivity extends AppCompatActivity {
         mFirestore = FirebaseFirestore.getInstance();
 
     }
+
 }

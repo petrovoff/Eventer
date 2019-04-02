@@ -87,38 +87,32 @@ public class YoursEventFragment extends Fragment {
             final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             final String currentUserId = mAuth.getCurrentUser().getUid();
             mFirestore = FirebaseFirestore.getInstance();
-            mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").orderBy("startDate", Query.Direction.ASCENDING).addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                    if(queryDocumentSnapshots != null){
-                        for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
-                            if(doc.getType() == DocumentChange.Type.ADDED){
-                                String eventId = doc.getDocument().getId();
-                                final Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
+            mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").orderBy("startDate", Query.Direction.DESCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
+                if(queryDocumentSnapshots != null){
+                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
+                        if(doc.getType() == DocumentChange.Type.ADDED){
+                            String eventId = doc.getDocument().getId();
+                            final Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
 
-                                mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                        if(task.isSuccessful()){
-                                            if(task.getResult().exists()){
+                            mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).get().addOnCompleteListener(task -> {
+                                if(task.isSuccessful()){
+                                    if(task.getResult().exists()){
 
-                                                String endDate = task.getResult().getString("endDate");
-                                                try {
-                                                    Date eventEndDate = dateFormat.parse(endDate);
-                                                    if(today.before(eventEndDate)) {
-                                                        mEventList.add(event);
-                                                        mEventRecyclerAdapter.notifyDataSetChanged();
-                                                    }
-                                                } catch (ParseException e1) {
-                                                    e1.printStackTrace();
-                                                }
-
+                                        String endDate = task.getResult().getString("endDate");
+                                        try {
+                                            Date eventEndDate = dateFormat.parse(endDate);
+                                            if(today.before(eventEndDate)) {
+                                                mEventList.add(event);
+                                                mEventRecyclerAdapter.notifyDataSetChanged();
                                             }
-
+                                        } catch (ParseException e1) {
+                                            e1.printStackTrace();
                                         }
+
                                     }
-                                });
-                            }
+
+                                }
+                            });
                         }
                     }
                 }

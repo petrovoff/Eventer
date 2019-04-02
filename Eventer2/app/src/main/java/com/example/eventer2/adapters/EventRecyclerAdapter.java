@@ -10,11 +10,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.eventer2.R;
 import com.example.eventer2.activities.EventInfoActivity;
 import com.example.eventer2.activities.InviteActivity;
 import com.example.eventer2.models.Event;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -55,7 +57,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
-//        holder.setIsRecyclable(false);
+        holder.setIsRecyclable(false);
 
         final Date today = new Date();
         final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
@@ -77,7 +79,40 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         //otvaramo infoEvent
         holder.onInfoBtn(eventId);
 
-        holder.onDeletePastEventsBtn(eventId);
+//        holder.onDeletePastEventsBtn(eventId);
+
+        holder.delete_btn.setOnClickListener(v -> {
+//            String currentUserId = mAuth.getCurrentUser().getUid();
+            mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    if(task.getResult().exists()){
+                        String authorId = task.getResult().getString("authorId");
+
+                        if(authorId != null) {
+                            if (!authorId.equals(currentUserId)) {
+                                mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        mEventList.remove(position);
+                                        notifyDataSetChanged();
+                                    }
+                                });
+                            }else {
+                                mFirestore.collection("Events").document(eventId).delete();
+                                mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        mEventList.remove(position);
+                                        notifyDataSetChanged();
+                                    }
+                                });
+
+                            }
+                        }
+                    }
+                }
+            });
+        });
 
         //potvrda dolaska
         mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(task -> {
@@ -105,7 +140,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                                 if (userTask.getResult().exists()) {
                                     String arrival = userTask.getResult().getString("arrival");
 
-
                                     if(arrival != null) {
                                         switch (arrival) {
                                             case "Yes":
@@ -124,21 +158,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                                                 holder.maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorAccent));
                                         }
                                     }
-//                                    if (arrival != null) {
-//                                        if (arrival.equals("Yes")) {
-//                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                                                holder.yes_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-//                                            }
-//                                        } else if (arrival.equals("No")) {
-//                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                                                holder.no_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-//                                            }
-//                                        } else if (arrival.equals("Maybe")) {
-//                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                                                holder.maybe_btn.setTextColor(mContext.getColor(R.color.colorAccent));
-//                                            }
-//                                        }
-//                                    }
                                 }
                             }
                         });
@@ -326,29 +345,40 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         }
 
 
-        public void onDeletePastEventsBtn(String eventId){
-            delete_btn.setOnClickListener(v -> {
-                String currentUserId = mAuth.getCurrentUser().getUid();
-                mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        if(task.getResult().exists()){
-                            String authorId = task.getResult().getString("authorId");
-
-                            if(authorId != null) {
-                                if (!authorId.equals(currentUserId)) {
-                                    mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete();
-                                    notifyDataSetChanged();
-                                }else {
-                                    mFirestore.collection("Events").document(eventId).delete();
-                                    mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete();
-                                    notifyDataSetChanged();
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-        }
+//        public void onDeletePastEventsBtn(String eventId){
+//            delete_btn.setOnClickListener(v -> {
+//                String currentUserId = mAuth.getCurrentUser().getUid();
+//                mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
+//                    if(task.isSuccessful()){
+//                        if(task.getResult().exists()){
+//                            String authorId = task.getResult().getString("authorId");
+//
+//                            if(authorId != null) {
+//                                if (!authorId.equals(currentUserId)) {
+//                                    mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                        @Override
+//                                        public void onSuccess(Void aVoid) {
+//                                            Toast.makeText(mContext, eventId + " deleted invited", Toast.LENGTH_SHORT).show();
+//                                            notifyDataSetChanged();
+//                                        }
+//                                    });
+//                                }else {
+//                                    mFirestore.collection("Events").document(eventId).delete();
+//                                    mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                        @Override
+//                                        public void onSuccess(Void aVoid) {
+//                                            Toast.makeText(mContext, eventId + " deleted created", Toast.LENGTH_SHORT).show();
+//                                            notifyDataSetChanged();
+//                                        }
+//                                    });
+//
+//                                }
+//                            }
+//                        }
+//                    }
+//                });
+//            });
+//        }
 
         public void setInvisibleBtn(){
             yes_btn.setVisibility(mView.VISIBLE);

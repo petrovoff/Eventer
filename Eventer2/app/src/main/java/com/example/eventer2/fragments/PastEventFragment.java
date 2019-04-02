@@ -16,6 +16,7 @@ import com.example.eventer2.adapters.EventRecyclerAdapter;
 import com.example.eventer2.models.Event;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -96,8 +97,8 @@ public class PastEventFragment extends Fragment {
                                 if(!authorId.equals(currentUserId)) {
                                     mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").addSnapshotListener((eventQueryDocument, e1) -> {
                                         if (eventQueryDocument != null) {
-                                            for (DocumentChange eventDoc : eventQueryDocument.getDocumentChanges()) {
-                                                Event eventGuest = eventDoc.getDocument().toObject(Event.class).returnId(eventId);
+                                            for (DocumentSnapshot eventDoc : queryDocumentSnapshots.getDocuments()) {
+                                                Event eventGuest = eventDoc.toObject(Event.class).returnId(eventId);
                                                 String date = eventGuest.getEndDate();
 
                                                 if (date != null) {

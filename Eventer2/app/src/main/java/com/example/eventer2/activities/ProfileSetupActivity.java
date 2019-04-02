@@ -257,16 +257,4 @@ public class ProfileSetupActivity extends AppCompatActivity {
         mProgressBar.setVisibility(View.INVISIBLE);
 
     }
-
-    public String changeNumber(String phone){
-        if (phone.startsWith("0")) {
-            phone = phone.substring(1);
-            phone = "+381" + phone;
-        }
-        return phone;
-    }
-
-
-
-
 }

@@ -8,6 +8,7 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -201,7 +202,6 @@ public class NewEventActivity extends AppCompatActivity {
                                 mFirebaseFirestore.collection("Events").document(eventId).set(eventMap).addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
-                                        onInviteFriendIntent(eventId);
                                     } else {
                                         Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
                                     }
@@ -270,10 +270,16 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private void initMap(){
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         mMap.setOnClickListener(v -> {
 
-            Intent mapIntent = new Intent(this, MapActivity.class);
-            startActivity(mapIntent);
+            if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                Intent mapIntent = new Intent(this, MapActivity.class);
+                startActivity(mapIntent);
+            }else {
+                Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
+            }
+
         });
     }
 

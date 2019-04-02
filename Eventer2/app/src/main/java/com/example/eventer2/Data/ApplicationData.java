@@ -3,6 +3,10 @@ package com.example.eventer2.Data;
 import android.app.Application;
 import android.net.Uri;
 
+import com.example.eventer2.models.InvitedFriend;
+
+import java.util.ArrayList;
+
 public class ApplicationData extends Application {
     private Uri eventImageUri;
     private String userImageUri;
@@ -10,6 +14,7 @@ public class ApplicationData extends Application {
     private String userName;
     private String userPhone;
     private boolean change;
+    public ArrayList<InvitedFriend> friendsList = new ArrayList<>();
 
     public void setImageUri(Uri eventImageUri) {
         eventImageUri = eventImageUri;
@@ -66,4 +71,5 @@ public class ApplicationData extends Application {
     public boolean getChange() {
         return change;
     }
+
 }

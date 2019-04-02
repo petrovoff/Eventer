@@ -3,13 +3,16 @@ package com.example.eventer2.adapters;
 import android.content.Context;
 import android.os.Build;
 import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.R;
 import com.example.eventer2.activities.InviteActivity;
 import com.example.eventer2.models.Guest;
@@ -27,8 +30,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAdapter.ViewHolder>{
 
-    public List<InvitedFriend> mInvitedList;
-    public Context mContext;
+
+    private ApplicationData mData;
+    private List<InvitedFriend> mInvitedList;
+    private Context mContext;
+
+    Boolean clicked = false;
 
     public FirebaseFirestore mFirestore;
     public FirebaseAuth mAuth;
@@ -44,7 +51,7 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.invited_friend_list_item, parent,false);
         mFirestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
-
+        mData = (ApplicationData) mContext.getApplicationContext();
 
 
         return new InvitedFriendsAdapter.ViewHolder(view);
@@ -64,6 +71,8 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
         final String invited_name = mInvitedList.get(position).getName();
         final String invited_number = mInvitedList.get(position).getNumber();
 
+        mInvitedList.get(position).setCheck(false);
+
         guest_name = holder.invitedName;
         guest_number = holder.invitedNumber;
 
@@ -73,6 +82,7 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
         holder.mEventImage.setVisibility(View.INVISIBLE);
         holder.invitedUsername.setVisibility(View.INVISIBLE);
 
+
         //promena broja iz imenika
         String phone = mInvitedList.get(position).getNumber();
         if(phone.startsWith("0")){
@@ -80,6 +90,9 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
             phone = "+381" + phone;
         }
         String finalPhone = phone;
+
+
+
         //prikazivanje ikonice
         mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {
             if(queryDocumentSnapshots != null){
@@ -106,62 +119,19 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
         });
 //        //pozivamo ljude na event
         holder.guestInvateBtn.setOnClickListener(v -> {
+            if(!mInvitedList.get(position).isCheck()){
+                mData.friendsList.add(mInvitedList.get(position));
+                holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
+                mInvitedList.get(position).setCheck(true);
+                Toast.makeText(mContext, "User:" + invited_name + " " + mInvitedList.get(position).isCheck(), Toast.LENGTH_SHORT).show();
 
-            Toast.makeText(mContext, "Username:" + invited_name + " userId:" + invited_demo, Toast.LENGTH_SHORT).show();
+            }else if(mInvitedList.get(position).isCheck()) {
+                mData.friendsList.remove(mInvitedList.get(position));
+                holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.guest_not_invited));
+                mInvitedList.get(position).setCheck(false);
+                Toast.makeText(mContext, "User:" + invited_name + " " + mInvitedList.get(position).isCheck(), Toast.LENGTH_SHORT).show();
+            }
 
-            mFirestore.collection("Events/" + eventId + "/Guests").document(invited_demo).get().addOnCompleteListener(task -> {
-                if(task.isSuccessful()) {
-                    if (!task.getResult().exists()) {
-
-                        HashMap<String, Object> invitedMap = new HashMap<>();
-                        invitedMap.put("name", invited_name);
-                        invitedMap.put("number", invited_number);
-                        invitedMap.put("demoId", invited_demo);
-                        invitedMap.put("userId", invited_id);
-                        invitedMap.put("eventId", eventId);
-                        invitedMap.put("arrival", "No answer");
-
-
-                        mFirestore.collection("Events/" + eventId + "/Guests").document(invited_demo).set(invitedMap);
-                        holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
-                        Toast.makeText(mContext, invited_name + " was invited!", Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
-
-            mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    if(task.getResult().exists()){
-                        String name = task.getResult().getString("name");
-                        String location = task.getResult().getString("eventLocation");
-                        String downloadUri = task.getResult().getString("image_url");
-                        String theme = task.getResult().getString("theme");
-                        String startDate = task.getResult().getString("startDate");
-                        String endDate = task.getResult().getString("endDate");
-                        String startTime = task.getResult().getString("startTime");
-                        String endTime = task.getResult().getString("endTime");
-                        String author = task.getResult().getString("authorId");
-
-                        HashMap<String, String> eventMap = new HashMap<>();
-                        eventMap.put("image_url", downloadUri);
-                        eventMap.put("name", name);
-                        eventMap.put("theme", theme);
-                        eventMap.put("eventLocation", location);
-                        eventMap.put("startDate", startDate);
-                        eventMap.put("endDate", endDate);
-                        eventMap.put("startTime", startTime);
-                        eventMap.put("endTime", endTime);
-                        eventMap.put("authorId", author);
-
-                        onSendSms(name,location,startDate,startTime);
-                        if(invited_id != null){
-                            mFirestore.collection("Users/" + invited_id + "/InvitedEvents").document(eventId).set(eventMap);
-                        }else {
-                            mFirestore.collection("WithoutAcc").document(invited_demo).set(eventMap);
-                        }
-                    }
-                }
-            });
         });
 
 //        //prikazuje nam se da li smo nekog pozvali
@@ -169,7 +139,8 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
             if(documentSnapshot != null) {
                 if (documentSnapshot.exists()) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
+                        holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.invited_base));
+                        holder.guestInvateBtn.setEnabled(false);
                     }
                 } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -203,7 +174,7 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
                                        invitedMap.put("eventId", eventId);
                                        invitedMap.put("arrival", guestArrival);
 
-                                       mFirestore.collection("Events" + eventId + "/Guests").document(demoId).set(invitedMap);
+                                       mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).set(invitedMap);
                                    }
                                }
                            }
@@ -233,6 +204,7 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
         private TextView invitedUsername;
         private ImageView guestInvateBtn;
         private ImageView mEventImage;
+        private ProgressBar guestProgress;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -244,15 +216,8 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
             invitedName = mView.findViewById(R.id.guest_list_name);
             invitedNumber = mView.findViewById(R.id.guest_list_number);
             invitedUsername = mView.findViewById(R.id.guest_list_username);
+            guestProgress = mView.findViewById(R.id.guest_list_progress);
         }
-    }
-
-    public void onSendSms(String eventName, String location, String startDate, String startTime){
-        SmsManager sm = SmsManager.getDefault();
-        String number = "+381645871290";
-//        String number = "+381645741511";
-        String msg = "Invite to: " + eventName + "\n" + location;
-        sm.sendTextMessage(number,null, msg,null,null);
     }
 
     public void updateList(List<InvitedFriend> newList){

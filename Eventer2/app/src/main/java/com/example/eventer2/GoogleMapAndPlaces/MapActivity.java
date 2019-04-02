@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -227,19 +228,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MapActivity.this);
 
         try{
-            if(mLocationPermissionsGranted){
-                Task location = mFusedLocationProviderClient.getLastLocation();
-                location.addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        Log.wtf(TAG, task.getResult().toString());
-
-                        Location currentLocation = (Location) task.getResult();
+            Task location = mFusedLocationProviderClient.getLastLocation();
+            location.addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    Location currentLocation = (Location) task.getResult();
+                    if(currentLocation != null) {
+                        Toast.makeText(this, "Location:" + currentLocation.toString(), Toast.LENGTH_SHORT).show();
                         moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), DEFAULT_ZOOM, "My Location");
-
                     }
-                });
-
-            }
+                }
+            });
         }catch (SecurityException e){
             Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage() );
         }

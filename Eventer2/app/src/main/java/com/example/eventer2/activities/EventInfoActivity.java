@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.GoogleMapAndPlaces.InfoMapActivity;
+import com.example.eventer2.GoogleMapAndPlaces.MapActivity;
 import com.example.eventer2.R;
 import com.example.eventer2.adapters.GuestRecyclerAdapter;
 import com.example.eventer2.listeners.CustomItemListener;
@@ -139,8 +141,6 @@ public class EventInfoActivity extends AppCompatActivity {
         });
 
         //prikazivanje gostiju
-
-
         mEventerBtn.setOnClickListener(v -> {
             inBackground("eventer");
 
@@ -199,7 +199,6 @@ public class EventInfoActivity extends AppCompatActivity {
             Intent inviteIntent = new Intent(EventInfoActivity.this, InviteActivity.class);
             inviteIntent.putExtra("eventId", mEventId);
             startActivity(inviteIntent);
-            finish();
         });
 
         mLocation.setOnClickListener(v -> {
@@ -237,9 +236,15 @@ public class EventInfoActivity extends AppCompatActivity {
     }
 
     private void onLocation(String location){
-        Intent infoMap = new Intent(this, InfoMapActivity.class);
-        infoMap.putExtra("location", location);
-        startActivity(infoMap);
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                Intent infoMap = new Intent(this, InfoMapActivity.class);
+                infoMap.putExtra("location", location);
+                startActivity(infoMap);
+            }else {
+                Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
+            }
+
     }
 
 

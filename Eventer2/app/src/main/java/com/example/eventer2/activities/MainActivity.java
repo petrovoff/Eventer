@@ -7,12 +7,15 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.eventer2.Data.ApplicationData;
+import com.example.eventer2.GoogleMapAndPlaces.MapActivity;
 import com.example.eventer2.R;
 import com.example.eventer2.fragments.AccountFragment;
 import com.example.eventer2.fragments.EventFragment;
@@ -74,11 +77,18 @@ public class MainActivity extends AppCompatActivity {
             //fragments set
             onStartFragment(mEventFragment);
 
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             mNewEventButton.setOnClickListener(v -> {
-                Intent newEventIntent = new Intent(MainActivity.this, NewEventActivity.class);
-                newEventIntent.putExtra("locationInfo", "0");
-                startActivity(newEventIntent);
+                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                    Intent newEventIntent = new Intent(MainActivity.this, NewEventActivity.class);
+                    newEventIntent.putExtra("locationInfo", "0");
+                    startActivity(newEventIntent);
+                }else {
+                    Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
+                }
+
             });
+
             eventNavCard.setOnClickListener(v -> {
                 replaceFragment(mEventFragment, mAccountFragment);
                 eventNavBtn.setTextSize(20);
@@ -195,5 +205,9 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commit();
     }
 
-
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+    }
 }
