@@ -1,13 +1,19 @@
 package com.example.eventer2.activities;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.ContactsContract;
@@ -163,20 +169,46 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         });
 
         //pozivanje iz imenika
+
+
         inviteChecked.setOnClickListener(v -> {
-            int listSize = mData.friendsList.size();
-            for(int i = 0; i < listSize; i++){
-                String name = mData.friendsList.get(i).getName();
-                String number = mData.friendsList.get(i).getNumber();
-                String demo = mData.friendsList.get(i).getDemoId();
-                String id = mData.friendsList.get(i).getUserId();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Send SMS permission.", Toast.LENGTH_LONG).show();
+                    //pitamo da nam korisnik odobri dozvolu za koriscenje
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.SEND_SMS}, 2);
+                }else {
+                    int listSize = mData.friendsList.size();
+                    for(int i = 0; i < listSize; i++){
+                        String name = mData.friendsList.get(i).getName();
+                        String number = mData.friendsList.get(i).getNumber();
+                        String demo = mData.friendsList.get(i).getDemoId();
+                        String id = mData.friendsList.get(i).getUserId();
 
-                addInUsers(name, number, demo, id);
-                addInEventsSMS(name, id,demo);
+                        addInUsers(name, number, demo, id);
+                        addInEventsSMS(name, id,demo);
 
+                    }
+                    mData.friendsList.clear();
+                }
             }
-            mData.friendsList.clear();
         });
+//        inviteChecked.setOnClickListener(v -> {
+//            int listSize = mData.friendsList.size();
+//            for(int i = 0; i < listSize; i++){
+//                String name = mData.friendsList.get(i).getName();
+//                String number = mData.friendsList.get(i).getNumber();
+//                String demo = mData.friendsList.get(i).getDemoId();
+//                String id = mData.friendsList.get(i).getUserId();
+//
+//                addInUsers(name, number, demo, id);
+//                addInEventsSMS(name, id,demo);
+//
+//            }
+//            mData.friendsList.clear();
+//        });
 
         //pozivamo iz aplikacije
         inviteBaseChecked.setOnClickListener(v -> {
@@ -438,4 +470,23 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         super.onBackPressed();
 
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1) {
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+
+                if (permission.equals(Manifest.permission.SEND_SMS)) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+
+                    }
+                }
+            }
+        }
+    }
+
 }

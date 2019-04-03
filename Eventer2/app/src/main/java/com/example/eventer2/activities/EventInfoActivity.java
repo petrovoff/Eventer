@@ -1,6 +1,7 @@
 package com.example.eventer2.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -70,6 +71,8 @@ public class EventInfoActivity extends AppCompatActivity {
 
     private List<Guest> guest_list;
     private RecyclerView guest_recycler_view;
+    private TextView emptyList;
+    private ConstraintLayout fillList;
     private GuestRecyclerAdapter guest_adapter;
 
     private FirebaseFirestore mFirestore;
@@ -240,6 +243,8 @@ public class EventInfoActivity extends AppCompatActivity {
         mImageView = findViewById(R.id.event_info_bg);
         mExportBtn = findViewById(R.id.export_event_btn);
         mProgressBar = findViewById(R.id.event_info_progress);
+        fillList = findViewById(R.id.fill_text);
+        emptyList = findViewById(R.id.empty_text);
 
         mEventerBtn = findViewById(R.id.event_info_base_btn);
         mAdminBtn = findViewById(R.id.event_info_admin_btn);

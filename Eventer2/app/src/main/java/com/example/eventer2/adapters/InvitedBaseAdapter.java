@@ -45,7 +45,11 @@ public class InvitedBaseAdapter extends RecyclerView.Adapter<InvitedBaseAdapter.
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.invited_friend_list_item, parent,false);
+        View view;
+
+        view = LayoutInflater.from(parent.getContext()).inflate(R.layout.invited_friend_list_item, parent,false);
+
+
         mFirestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
         mData = (ApplicationData) mContext.getApplicationContext();

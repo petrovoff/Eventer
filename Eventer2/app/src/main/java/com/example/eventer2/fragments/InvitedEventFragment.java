@@ -64,9 +64,6 @@ public class InvitedEventFragment extends Fragment {
         mEventRecyclerView = mView.findViewById(R.id.invited_event_list_view);
         today = new Date();
 
-
-
-
         mAuth = FirebaseAuth.getInstance();
         mEventRecyclerAdapter = new EventRecyclerAdapter(mEventList);
         mEventRecyclerView.setLayoutManager(new LinearLayoutManager(container.getContext()));

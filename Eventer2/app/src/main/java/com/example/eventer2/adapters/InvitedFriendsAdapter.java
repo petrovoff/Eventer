@@ -1,6 +1,8 @@
 package com.example.eventer2.adapters;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -15,6 +17,7 @@ import android.widget.Toast;
 import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.R;
 import com.example.eventer2.activities.InviteActivity;
+import com.example.eventer2.activities.ProfileSetupActivity;
 import com.example.eventer2.models.Guest;
 import com.example.eventer2.models.InvitedFriend;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAdapter.ViewHolder>{
