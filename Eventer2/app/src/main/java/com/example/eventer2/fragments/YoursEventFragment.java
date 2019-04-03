@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -87,6 +88,7 @@ public class YoursEventFragment extends Fragment {
             final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             final String currentUserId = mAuth.getCurrentUser().getUid();
             mFirestore = FirebaseFirestore.getInstance();
+
             mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").orderBy("startDate", Query.Direction.DESCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
                 if(queryDocumentSnapshots != null){
                     for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){

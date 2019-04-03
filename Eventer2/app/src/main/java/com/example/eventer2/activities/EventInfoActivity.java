@@ -1,6 +1,7 @@
 package com.example.eventer2.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.GoogleMapAndPlaces.InfoMapActivity;
 import com.example.eventer2.GoogleMapAndPlaces.MapActivity;
@@ -84,6 +86,7 @@ public class EventInfoActivity extends AppCompatActivity {
         guest_recycler_view = findViewById(R.id.guest_list_view);
         guest_list = new ArrayList<>();
         guest_recycler_view.setLayoutManager(new LinearLayoutManager(this));
+        guest_recycler_view.addItemDecoration(new DividerItemDecoration(guest_recycler_view.getContext(), DividerItemDecoration.VERTICAL));
 
         mEventId = getIntent().getStringExtra("eventId");
         currentUserId = mAuth.getCurrentUser().getUid();
@@ -91,6 +94,8 @@ public class EventInfoActivity extends AppCompatActivity {
         mFirestore.collection("Events").document(mEventId).get().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
                 if(task.getResult().exists()){
+                    mProgressBar.setVisibility(View.VISIBLE);
+
                     final String name = task.getResult().getString("name");
                     String theme = task.getResult().getString("theme");
                     location = task.getResult().getString("eventLocation");
@@ -108,7 +113,17 @@ public class EventInfoActivity extends AppCompatActivity {
                     mEndDate.setText(endDate);
                     mStartTime.setText(startTime);
                     mEndTime.setText(endTime);
-                    Glide.with(EventInfoActivity.this).load(image).into(mImageView);
+
+                    if(image != null) {
+                        Glide.with(EventInfoActivity.this).load(image).into(mImageView);
+                    }else {
+                        RequestOptions placeholderRequest = new RequestOptions();
+                        placeholderRequest.placeholder(R.drawable.backgroundholder);
+                        Glide.with(EventInfoActivity.this).setDefaultRequestOptions(placeholderRequest)
+                                .load(image).into(mImageView);
+                    }
+
+                    mProgressBar.setVisibility(View.INVISIBLE);
 
                     if(mAuthorId.equals(currentUserId)) {
                         try {

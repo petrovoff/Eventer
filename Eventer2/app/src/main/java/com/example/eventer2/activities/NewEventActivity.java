@@ -2,6 +2,7 @@ package com.example.eventer2.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.GoogleMapAndPlaces.MapActivity;
 import com.example.eventer2.R;
@@ -49,7 +51,7 @@ public class NewEventActivity extends AppCompatActivity {
     private ImageView mEventImage;
     private EditText mEventName;
     private EditText mEventTheme;
-    private EditText mEventLocation;
+    private TextView mEventLocation;
     private TextView mStartDisplayDate;
     private TextView mEndDisplayDate;
     private TextView mStartDisplayTime;
@@ -74,6 +76,7 @@ public class NewEventActivity extends AppCompatActivity {
     private FirebaseFirestore mFirebaseFirestore;
     private FirebaseAuth mAuth;
 
+    @SuppressLint("CheckResult")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,9 +107,12 @@ public class NewEventActivity extends AppCompatActivity {
 //            mEventLocation.setEnabled(false);
 
             if(mEventPicture != null){
-                Glide.with(this).load(mEventPicture).into(mEventImage);
+                RequestOptions placeholderRequest = new RequestOptions();
+                placeholderRequest.placeholder(R.drawable.backgroundholder);
+                Glide.with(NewEventActivity.this).setDefaultRequestOptions(placeholderRequest)
+                        .load(mEventPicture).into(mEventImage);
             }else {
-                mEventImage.setImageResource(R.mipmap.post_placeholder);
+                mEventImage.setImageResource(R.drawable.backgroundholder);
             }
         }
 
@@ -159,6 +165,14 @@ public class NewEventActivity extends AppCompatActivity {
 
         if(mAuth.getCurrentUser() != null) {
 
+            mEventLocation.setOnClickListener(v1 -> {
+                if(mLocation != null) {
+                    Toast.makeText(this, "Event location set!", Toast.LENGTH_SHORT).show();
+                }else {
+                    Toast.makeText(this, "Choose event location!", Toast.LENGTH_SHORT).show();
+                }
+            });
+
             mCreateEventButton.setOnClickListener(v -> {
 
                 mName = mEventName.getText().toString();
@@ -174,14 +188,16 @@ public class NewEventActivity extends AppCompatActivity {
                 if (!TextUtils.isEmpty(mName)
                         && !TextUtils.isEmpty(mTheme) && !TextUtils.isEmpty(mLocation) && !mStartTime.equals("Start Date")
                         && !mEndDate.equals("End Date") && !mStartTime.equals("Start Time")
-                        && !mEndTime.equals("End Time") && mEventImageUri != null) {
+                        && !mEndTime.equals("End Time")) {
 
-                    final StorageReference filePath = mStorageReference.child("event_images").child(mName + ".jpg");
-                    filePath.putFile(mEventImageUri).addOnSuccessListener(taskSnapshot ->
-                            filePath.getDownloadUrl().addOnSuccessListener(uri -> {
+                    if (mEventImageUri != null) {
+                        final StorageReference filePath = mStorageReference.child("event_images").child(mName + ".jpg");
+                        filePath.putFile(mEventImageUri).addOnSuccessListener(taskSnapshot ->
+                                filePath.getDownloadUrl().addOnSuccessListener(uri -> {
                                 final String downloadUri = uri.toString();
 
-                                mEventPicture = downloadUri;
+                                    mEventPicture = downloadUri;
+
 
                                 final String eventId = UUID.randomUUID().toString();
 
@@ -209,7 +225,7 @@ public class NewEventActivity extends AppCompatActivity {
                                 });
 
 
-                                    mFirebaseFirestore.collection("Users/" + mCurrentUserId + "/CreatedEvents").document(eventId).set(eventMap).addOnCompleteListener(task -> {
+                                mFirebaseFirestore.collection("Users/" + mCurrentUserId + "/CreatedEvents").document(eventId).set(eventMap).addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
                                         onInviteFriendIntent(eventId);
@@ -219,6 +235,45 @@ public class NewEventActivity extends AppCompatActivity {
                                     mEventProgress.setVisibility(View.INVISIBLE);
                                 });
                             })).addOnFailureListener(e -> mEventProgress.setVisibility(View.INVISIBLE));
+                    }else {
+
+                        final String eventId = UUID.randomUUID().toString();
+
+                        Map<String, Object> eventMap = new HashMap<>();
+//                        eventMap.put("image_url", downloadUri);
+                        eventMap.put("name", mName);
+                        eventMap.put("theme", mTheme);
+                        eventMap.put("eventLocation", mLocation);
+                        eventMap.put("startDate", mStartDate);
+                        eventMap.put("endDate", mEndDate);
+                        eventMap.put("startTime", mStartTime);
+                        eventMap.put("endTime", mEndTime);
+                        eventMap.put("authorId", mCurrentUserId);
+
+                        mApplicationData.setImageUri(null);
+                        mApplicationData.setEventLocation(null);
+
+                        mFirebaseFirestore.collection("Events").document(eventId).set(eventMap).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
+                            }
+                            mEventProgress.setVisibility(View.INVISIBLE);
+                        });
+
+
+                        mFirebaseFirestore.collection("Users/" + mCurrentUserId + "/CreatedEvents").document(eventId).set(eventMap).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
+                                onInviteFriendIntent(eventId);
+                            } else {
+                                Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
+                            }
+                            mEventProgress.setVisibility(View.INVISIBLE);
+                        });
+                }
+
                 }else {
                     Toast.makeText(this, "You must fill all fields!", Toast.LENGTH_SHORT).show();
                     mEventProgress.setVisibility(View.INVISIBLE);
