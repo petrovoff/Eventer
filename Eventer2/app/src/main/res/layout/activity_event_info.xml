@@ -207,7 +207,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:background="@color/colorPrimary"
-        android:text="Admin"
+        android:text="Author"
         android:textAllCaps="false"
         android:textColor="@color/colorAccent"
         android:textSize="14sp"

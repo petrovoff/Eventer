@@ -16,7 +16,7 @@ public class ApplicationData extends Application {
     private String userPhone;
     private boolean change;
     public ArrayList<InvitedFriend> friendsList = new ArrayList<>();
-    public ArrayList<Event> eventsList = new ArrayList<>();
+    public ArrayList<InvitedFriend> phoneFriends = new ArrayList<>();
 
     public void setImageUri(Uri eventImageUri) {
         eventImageUri = eventImageUri;

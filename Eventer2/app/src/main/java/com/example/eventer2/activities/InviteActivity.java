@@ -1,6 +1,7 @@
 package com.example.eventer2.activities;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
@@ -10,12 +11,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.view.Menu;
@@ -80,7 +79,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         layoutManager = new LinearLayoutManager(this);
         if (mAuth.getCurrentUser() != null) {
             inviteFriendsView.setLayoutManager(layoutManager);
-
 
             mAdapter = new InvitedFriendsAdapter(getContacts(), this);
             mBaseAdapter = new InvitedBaseAdapter(list, this);
@@ -161,7 +159,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                     }
                 }
 
-
                 mAdapter.updateList(list);
                 inviteFriendsView.setAdapter(mAdapter);
                 mAdapter.notifyDataSetChanged();
@@ -169,8 +166,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         });
 
         //pozivanje iz imenika
-
-
         inviteChecked.setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
@@ -180,35 +175,10 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.SEND_SMS}, 2);
                 }else {
-                    int listSize = mData.friendsList.size();
-                    for(int i = 0; i < listSize; i++){
-                        String name = mData.friendsList.get(i).getName();
-                        String number = mData.friendsList.get(i).getNumber();
-                        String demo = mData.friendsList.get(i).getDemoId();
-                        String id = mData.friendsList.get(i).getUserId();
-
-                        addInUsers(name, number, demo, id);
-                        addInEventsSMS(name, id,demo);
-
-                    }
-                    mData.friendsList.clear();
+                    smsDialog().show();
                 }
             }
         });
-//        inviteChecked.setOnClickListener(v -> {
-//            int listSize = mData.friendsList.size();
-//            for(int i = 0; i < listSize; i++){
-//                String name = mData.friendsList.get(i).getName();
-//                String number = mData.friendsList.get(i).getNumber();
-//                String demo = mData.friendsList.get(i).getDemoId();
-//                String id = mData.friendsList.get(i).getUserId();
-//
-//                addInUsers(name, number, demo, id);
-//                addInEventsSMS(name, id,demo);
-//
-//            }
-//            mData.friendsList.clear();
-//        });
 
         //pozivamo iz aplikacije
         inviteBaseChecked.setOnClickListener(v -> {
@@ -234,11 +204,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
             inviteFriendsView.setAdapter(mAdapter);
             mAdapter.notifyDataSetChanged();
         }
-
-        if(mData.friendsList.size() != 0){
-            inviteChecked.setBackgroundColor(getResources().getColor(R.color.colorAccent));
-        }
-
     }
 
     private void init(){
@@ -288,8 +253,6 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                     list.add(new InvitedFriend(name, changeNumber(phone), eventId, id));
                 }
             }
-
-
             mAdapter.updateList(list);
             inviteFriendsView.setAdapter(mAdapter);
             mAdapter.notifyDataSetChanged();
@@ -456,9 +419,31 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         });
     }
 
-    public void openDialog(){
-        DialogSms dialogSms = new DialogSms();
-        dialogSms.show(getSupportFragmentManager(), "sms dialog");
+    private AlertDialog smsDialog(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Do you want to invite selected friends via SMS?")
+                .setTitle("SMS Service");
+        builder.setPositiveButton("Yes", (dialog, id) -> {
+            int listSize = mData.friendsList.size();
+            for(int i = 0; i < listSize; i++){
+                String name = mData.friendsList.get(i).getName();
+                String number = mData.friendsList.get(i).getNumber();
+                String demo = mData.friendsList.get(i).getDemoId();
+                String userId = mData.friendsList.get(i).getUserId();
+
+                addInUsers(name, number, demo, userId);
+                addInEventsSMS(name, userId,demo);
+
+            }
+            mData.friendsList.clear();
+            Toast.makeText(this, "Message was sent!", Toast.LENGTH_SHORT).show();
+        });
+        builder.setNegativeButton("No", (dialog, id) -> {
+            Toast.makeText(this, "Denied!", Toast.LENGTH_SHORT).show();
+        });
+
+        return builder.create();
     }
 
     @Override

@@ -81,7 +81,7 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
             onYesBtn(eventId,demoId,guestName);
             vh.setGuestData(guestName, "Yes (A)");
             vh.authorCard.setVisibility(View.INVISIBLE);
-            vh.guestArrival.setVisibility(View.VISIBLE);
+            vh.authorArrivalCard.setVisibility(View.VISIBLE);
         });
 
         vh.authorNoBtn.setOnClickListener(v -> {
@@ -89,20 +89,22 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
             onNoBtn(eventId,demoId,guestName);
             vh.setGuestData(guestName, "No (A)");
             vh.authorCard.setVisibility(View.INVISIBLE);
-            vh.guestArrival.setVisibility(View.VISIBLE);
+            vh.authorArrivalCard.setVisibility(View.VISIBLE);
         });
         vh.authorMaybeBtn.setOnClickListener(v -> {
 //            mListener.onItemClick(v,vh.getLayoutPosition());
             onMaybeBtn(eventId,demoId,guestName);
             vh.setGuestData(guestName, "Maybe (A)");
             vh.authorCard.setVisibility(View.INVISIBLE);
-            vh.guestArrival.setVisibility(View.VISIBLE);
+            vh.authorArrivalCard.setVisibility(View.VISIBLE);
         });
 
 
-            if (guestId == null && guestArrival.equals("No answer")) {
-                vh.guestArrival.setVisibility(View.VISIBLE);
+            if (guestId == null) {
+                vh.authorArrivalCard.setVisibility(View.VISIBLE);
 
+            }else {
+                vh.guestArrival.setVisibility(View.VISIBLE);
             }
             if (guestId == null) {
                 mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(eventTask -> {
@@ -115,9 +117,9 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
                             try {
                                 eventEndDate = format.parse(endDate);
                                 if (today.before(eventEndDate) && authorId.equals(currentUserId)) {
-                                    vh.guestArrival.setOnClickListener(v -> {
+                                    vh.authorArrivalCard.setOnClickListener(v -> {
                                         vh.authorCard.setVisibility(View.VISIBLE);
-                                        vh.guestArrival.setVisibility(View.INVISIBLE);
+                                        vh.authorArrivalCard.setVisibility(View.INVISIBLE);
                                     });
                                 }
                             } catch (ParseException e) {
@@ -142,9 +144,9 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private View mView;
 
-        private TextView guest_name, guestArrival;
+        private TextView guest_name, guestArrival, guestAuthorArrival;
         private TextView authorYesBtn, authorNoBtn, authorMaybeBtn;
-        private CardView authorCard;
+        private CardView authorCard, authorArrivalCard;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -154,17 +156,22 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
             authorNoBtn = mView.findViewById(R.id.admin_no_btn);
             authorMaybeBtn = mView.findViewById(R.id.admin_maybe_btn);
             authorCard = mView.findViewById(R.id.admin_cardview);
+            authorArrivalCard = mView.findViewById(R.id.guest_admin_card);
 
             authorYesBtn.setOnClickListener(this);
             authorNoBtn.setOnClickListener(this);
             authorMaybeBtn.setOnClickListener(this);
+            authorArrivalCard.setOnClickListener(this);
         }
 
         public void setGuestData(String name, String arrival) {
             guest_name = mView.findViewById(R.id.guest_name);
+            guestAuthorArrival = mView.findViewById(R.id.guest_admin_arrival);
             guestArrival = mView.findViewById(R.id.guest_arrival);
 
             guest_name.setText(name);
+
+            guestAuthorArrival.setText(arrival);
             guestArrival.setText(arrival);
 
         }
@@ -182,7 +189,7 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
 
         mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap).addOnSuccessListener(aVoid -> {
 
-            Toast.makeText(mContext, guestName + " say Yes", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, guestName + " says Yes", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
             Toast.makeText(mContext, "Something was wrong!", Toast.LENGTH_SHORT).show();
         });
@@ -195,7 +202,7 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
         guestMap.put("arrival", "No (A)");
 
         mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap).addOnSuccessListener(aVoid -> {
-            Toast.makeText(mContext, guestName + " say No", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, guestName + " says No", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
             Toast.makeText(mContext, "Something was wrong!", Toast.LENGTH_SHORT).show();
         });
@@ -207,7 +214,7 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
         guestMap.put("arrival", "Maybe (A)");
 
         mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap).addOnSuccessListener(aVoid -> {
-            Toast.makeText(mContext, guestName + " say Maybe", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, guestName + " says Maybe", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
             Toast.makeText(mContext, "Something was wrong!", Toast.LENGTH_SHORT).show();
         });

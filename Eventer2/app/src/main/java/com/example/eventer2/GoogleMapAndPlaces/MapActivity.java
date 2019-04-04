@@ -103,11 +103,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mChangeCard = findViewById(R.id.map_change_card);
         mSearchClear = findViewById(R.id.map_search_clear);
 
-
         mSearchClear.setOnClickListener(v -> {
             mSearchText.setText("");
         });
-
 
         getLocationPermission();
 
