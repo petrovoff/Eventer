@@ -24,6 +24,7 @@ import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.GoogleMapAndPlaces.InfoMapActivity;
 import com.example.eventer2.GoogleMapAndPlaces.MapActivity;
 import com.example.eventer2.R;
+import com.example.eventer2.adapters.GuestPhoneAdapter;
 import com.example.eventer2.adapters.GuestRecyclerAdapter;
 import com.example.eventer2.listeners.CustomItemListener;
 import com.example.eventer2.models.BooVariable;
@@ -68,12 +69,14 @@ public class EventInfoActivity extends AppCompatActivity {
     private String currentUserId;
     private String mAuthorId;
     private String location;
+    private int mState;
 
-    private List<Guest> guest_list;
+    private ArrayList<Guest> guest_list;
+    private ArrayList<Guest> guest_phone_list;
     private RecyclerView guest_recycler_view;
-    private TextView emptyList;
-    private ConstraintLayout fillList;
+    private RecyclerView guest_author_recycler;
     private GuestRecyclerAdapter guest_adapter;
+    private GuestPhoneAdapter guest_phone_adapter;
 
     private FirebaseFirestore mFirestore;
     private FirebaseAuth mAuth;
@@ -85,11 +88,17 @@ public class EventInfoActivity extends AppCompatActivity {
 
         init();
 
-        //guest recycler
-        guest_recycler_view = findViewById(R.id.guest_list_view);
+        mState = 1;
+        onLoadGuests();
+
         guest_list = new ArrayList<>();
+        guest_phone_list = new ArrayList<>();
+
         guest_recycler_view.setLayoutManager(new LinearLayoutManager(this));
         guest_recycler_view.addItemDecoration(new DividerItemDecoration(guest_recycler_view.getContext(), DividerItemDecoration.VERTICAL));
+
+        guest_author_recycler.setLayoutManager(new LinearLayoutManager(this));
+        guest_author_recycler.addItemDecoration(new DividerItemDecoration(guest_recycler_view.getContext(), DividerItemDecoration.VERTICAL));
 
         mEventId = getIntent().getStringExtra("eventId");
         currentUserId = mAuth.getCurrentUser().getUid();
@@ -160,8 +169,11 @@ public class EventInfoActivity extends AppCompatActivity {
 
         //prikazivanje gostiju
         mEventerBtn.setOnClickListener(v -> {
-            inBackground("eventer");
+            mState = 1;
+            inBackground();
 
+            guest_recycler_view.setVisibility(View.VISIBLE);
+            guest_author_recycler.setVisibility(View.INVISIBLE);
 
             mEventerBtn.setEnabled(false);
             mAdminBtn.setEnabled(true);
@@ -176,7 +188,11 @@ public class EventInfoActivity extends AppCompatActivity {
         });
 
         mAdminBtn.setOnClickListener(v -> {
-            inBackground("admin");
+            mState = 2;
+            inBackground();
+
+            guest_recycler_view.setVisibility(View.INVISIBLE);
+            guest_author_recycler.setVisibility(View.VISIBLE);
 
             mEventerBtn.setEnabled(true);
             mAdminBtn.setEnabled(false);
@@ -199,7 +215,7 @@ public class EventInfoActivity extends AppCompatActivity {
 
                             Guest guests = doc.getDocument().toObject(Guest.class);
                             String guestId = guests.getUserId();
-                            if(guestId == null){
+                            if(guestId != null){
                                 guest_list.add(guests);
                                 guest_adapter.updateList(guest_list);
                             }
@@ -211,6 +227,29 @@ public class EventInfoActivity extends AppCompatActivity {
         });
         guest_recycler_view.setAdapter(guest_adapter);
         guest_adapter.notifyDataSetChanged();
+
+
+        guest_phone_adapter = new GuestPhoneAdapter(guest_phone_list, (v, position) -> {
+            guest_phone_list.clear();
+            mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
+                if(queryDocumentSnapshots != null){
+                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
+                        if(doc.getType() == DocumentChange.Type.ADDED){
+
+                            Guest guests = doc.getDocument().toObject(Guest.class);
+                            String guestId = guests.getUserId();
+                            if(guestId == null){
+                                guest_phone_list.add(guests);
+                                guest_phone_adapter.updateList(guest_phone_list);
+                            }
+                        }
+                    }
+
+                }
+            });
+        });
+        guest_author_recycler.setAdapter(guest_phone_adapter);
+        guest_phone_adapter.notifyDataSetChanged();
 
 
         mInviteBtn.setOnClickListener(v -> {
@@ -227,7 +266,7 @@ public class EventInfoActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        onLoadGuests();
+        inBackground();
     }
 
     private void init(){
@@ -243,11 +282,12 @@ public class EventInfoActivity extends AppCompatActivity {
         mImageView = findViewById(R.id.event_info_bg);
         mExportBtn = findViewById(R.id.export_event_btn);
         mProgressBar = findViewById(R.id.event_info_progress);
-        fillList = findViewById(R.id.fill_text);
-        emptyList = findViewById(R.id.empty_text);
 
         mEventerBtn = findViewById(R.id.event_info_base_btn);
         mAdminBtn = findViewById(R.id.event_info_admin_btn);
+
+        guest_recycler_view = findViewById(R.id.guest_list_view);
+        guest_author_recycler = findViewById(R.id.guest_list_author_view);
 
         //firebase
         mAuth = FirebaseAuth.getInstance();
@@ -269,7 +309,9 @@ public class EventInfoActivity extends AppCompatActivity {
 
 
     private List<Guest> onLoadGuests(){
-        inBackground("first");
+        guest_recycler_view.setVisibility(View.VISIBLE);
+        guest_author_recycler.setVisibility(View.INVISIBLE);
+        inBackground();
 
         return guest_list;
     }
@@ -291,67 +333,49 @@ public class EventInfoActivity extends AppCompatActivity {
         return false;
     }
 
-    private List<Guest> inBackground(String... s){
+    private ArrayList<Guest> inBackground(){
 
+        ArrayList<Guest> demoList = new ArrayList<>();
 
-            if(s[0].equals("eventer")) {
-                mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
-                    if(queryDocumentSnapshots != null){
-                        guest_list.clear();
-                        for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
-                            Guest guest=doc.toObject(Guest.class);
-                            String guestId = null;
-                            if (guest != null) {
-                                guestId = guest.getUserId();
-                                if(guestId != null){
-                                    guest_list.add(guest);
-                                    guest_adapter.notifyDataSetChanged();
-                                }
+        if(mState == 1) {
+            mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
+                if(queryDocumentSnapshots != null){
+                    guest_list.clear();
+                    for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
+                        Guest guest=doc.toObject(Guest.class);
+                        String guestId = null;
+                        if (guest != null) {
+                            guestId = guest.getUserId();
+                            if(guestId != null){
+                                guest_list.add(guest);
+                                guest_adapter.notifyDataSetChanged();
                             }
                         }
                     }
-                });
-            }
-            else if(s[0].equals("admin")){
-                mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
-                    if(queryDocumentSnapshots != null){
-                        guest_list.clear();
-                        for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
-                            Guest guest = doc.toObject(Guest.class);
-                            String guestId = null;
-                            if (guest != null) {
-                                guestId = guest.getUserId();
-                                if(guestId == null){
-                                    guest_list.add(guest);
-                                    guest_adapter.notifyDataSetChanged();
-                                }
-                            }
-
-                        }
-                    }
-                });
-            }else if(s[0].equals("first")){
-
-                mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
-                    if(queryDocumentSnapshots != null){
-                        guest_list.clear();
-                        for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
-                            Guest guest=doc.toObject(Guest.class);
-                            String guestId = null;
-                            if (guest != null) {
-                                guestId = guest.getUserId();
-                                if(guestId != null){
-                                    guest_list.add(guest);
-                                    guest_adapter.notifyDataSetChanged();
-                                }
+                }
+            });
+            demoList = guest_list;
+        } else if(mState == 2) {
+            mFirestore.collection("Events/" + mEventId + "/Guests").addSnapshotListener((queryDocumentSnapshots, e) -> {
+                if (queryDocumentSnapshots != null) {
+                    guest_phone_list.clear();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        Guest guest = doc.toObject(Guest.class);
+                        String guestId = null;
+                        if (guest != null) {
+                            guestId = guest.getUserId();
+                            if (guestId == null) {
+                                guest_phone_list.add(guest);
+                                guest_phone_adapter.notifyDataSetChanged();
                             }
                         }
-                    }
-                });
-            }
 
-            return guest_list;
+                    }
+                }
+            });
+            demoList = guest_phone_list;
+        }
+        return demoList;
+
     }
-
-
 }

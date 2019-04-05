@@ -9,14 +9,19 @@ import com.example.eventer2.models.InvitedFriend;
 import java.util.ArrayList;
 
 public class ApplicationData extends Application {
+    //create event activity
     private Uri eventImageUri;
-    private String userImageUri;
     private String eventLocation;
+    //profile setup activity
+    private String userImageUri;
     private String userName;
     private String userPhone;
-    private boolean change;
+
+    //invite activity
     public ArrayList<InvitedFriend> friendsList = new ArrayList<>();
-    public ArrayList<InvitedFriend> phoneFriends = new ArrayList<>();
+
+    //event info button state (Eventer - Author)
+    private int infoState;
 
     public void setImageUri(Uri eventImageUri) {
         eventImageUri = eventImageUri;
@@ -66,12 +71,11 @@ public class ApplicationData extends Application {
         this.userPhone = userPhone;
     }
 
-    public void setChange(boolean change) {
-        change = change;
+    public int getInfoState() {
+        return infoState;
     }
 
-    public boolean getChange() {
-        return change;
+    public void setInfoState(int infoState) {
+        this.infoState = infoState;
     }
-
 }

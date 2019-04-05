@@ -30,17 +30,19 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdapter.ViewHolder> {
+public class GuestRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public List<Guest> mGuestList;
     public Context mContext;
 
     private CustomItemListener mListener;
+    private static final int EMPTY_VIEW = 10;
 
-    private FirebaseFirestore mFirestore;
-    private FirebaseAuth mAuth;
-    final Date today = new Date();
-    final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+    private class EmptyViewHolder extends RecyclerView.ViewHolder {
+        private EmptyViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
 
     public GuestRecyclerAdapter(List<Guest> guestList, CustomItemListener listener) {
         this.mGuestList = guestList;
@@ -49,175 +51,72 @@ public class GuestRecyclerAdapter extends RecyclerView.Adapter<GuestRecyclerAdap
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int position) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.guest_list_item, parent, false);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v;
         mContext = parent.getContext();
-        ViewHolder vh = new ViewHolder(view);
 
-        mFirestore = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
+        if (viewType == EMPTY_VIEW) {
+            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_guest_empty, parent, false);
+            return new EmptyViewHolder(v);
+        }
+        else {
+            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.guest_list_item, parent, false);
+            return new ViewHolder(v);
+        }
 
-        return vh;
+
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder vh, int position) {
-        vh.setIsRecyclable(false);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        holder.setIsRecyclable(false);
+        if (holder instanceof ViewHolder) {
+            ViewHolder vh = (ViewHolder) holder;
 
-        String currentUserId = mAuth.getCurrentUser().getUid();
-
-        String guestId = mGuestList.get(position).getUserId();
-        String guestName = mGuestList.get(position).getName();
-        String guestArrival = mGuestList.get(position).getArrival();
-        String eventId = mGuestList.get(position).getEventId();
-        String demoId = mGuestList.get(position).getDemoId();
-
-
-        vh.setGuestData(guestName, guestArrival);
-
-
-        vh.authorYesBtn.setOnClickListener(v -> {
-//            mListener.onItemClick(v,vh.getLayoutPosition());
-            onYesBtn(eventId,demoId,guestName);
-            vh.setGuestData(guestName, "Yes (A)");
-            vh.authorCard.setVisibility(View.INVISIBLE);
-            vh.authorArrivalCard.setVisibility(View.VISIBLE);
-        });
-
-        vh.authorNoBtn.setOnClickListener(v -> {
-//            mListener.onItemClick(v,vh.getLayoutPosition());
-            onNoBtn(eventId,demoId,guestName);
-            vh.setGuestData(guestName, "No (A)");
-            vh.authorCard.setVisibility(View.INVISIBLE);
-            vh.authorArrivalCard.setVisibility(View.VISIBLE);
-        });
-        vh.authorMaybeBtn.setOnClickListener(v -> {
-//            mListener.onItemClick(v,vh.getLayoutPosition());
-            onMaybeBtn(eventId,demoId,guestName);
-            vh.setGuestData(guestName, "Maybe (A)");
-            vh.authorCard.setVisibility(View.INVISIBLE);
-            vh.authorArrivalCard.setVisibility(View.VISIBLE);
-        });
-
-
-            if (guestId == null) {
-                vh.authorArrivalCard.setVisibility(View.VISIBLE);
-
-            }else {
-                vh.guestArrival.setVisibility(View.VISIBLE);
-            }
-            if (guestId == null) {
-                mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(eventTask -> {
-                    if (eventTask.isSuccessful()) {
-                        if (eventTask.getResult().exists()) {
-                            String authorId = eventTask.getResult().getString("authorId");
-                            String endDate = eventTask.getResult().getString("endDate");
-
-                            Date eventEndDate = null;
-                            try {
-                                eventEndDate = format.parse(endDate);
-                                if (today.before(eventEndDate) && authorId.equals(currentUserId)) {
-                                    vh.authorArrivalCard.setOnClickListener(v -> {
-                                        vh.authorCard.setVisibility(View.VISIBLE);
-                                        vh.authorArrivalCard.setVisibility(View.INVISIBLE);
-                                    });
-                                }
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
+            String guestName = mGuestList.get(position).getName();
+            String guestArrival = mGuestList.get(position).getArrival();
+            vh.guest_name.setText(guestName);
+            vh.guestArrival.setText(guestArrival);
+            vh.guestArrival.setVisibility(View.VISIBLE);
         }
 
     }
 
     @Override
     public int getItemCount() {
-        if (mGuestList != null) {
-            return mGuestList.size();
-        } else {
-            return 0;
+        return mGuestList.size() > 0 ? mGuestList.size() : 1;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (mGuestList.size() == 0) {
+
+            return EMPTY_VIEW;
         }
+        return super.getItemViewType(position);
+
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private View mView;
+        View mView;
 
-        private TextView guest_name, guestArrival, guestAuthorArrival;
-        private TextView authorYesBtn, authorNoBtn, authorMaybeBtn;
-        private CardView authorCard, authorArrivalCard;
+        TextView guest_name, guestArrival, guestAuthorArrival;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             mView = itemView;
 
-            authorYesBtn = mView.findViewById(R.id.admin_yes_btn);
-            authorNoBtn = mView.findViewById(R.id.admin_no_btn);
-            authorMaybeBtn = mView.findViewById(R.id.admin_maybe_btn);
-            authorCard = mView.findViewById(R.id.admin_cardview);
-            authorArrivalCard = mView.findViewById(R.id.guest_admin_card);
-
-            authorYesBtn.setOnClickListener(this);
-            authorNoBtn.setOnClickListener(this);
-            authorMaybeBtn.setOnClickListener(this);
-            authorArrivalCard.setOnClickListener(this);
-        }
-
-        public void setGuestData(String name, String arrival) {
             guest_name = mView.findViewById(R.id.guest_name);
             guestAuthorArrival = mView.findViewById(R.id.guest_admin_arrival);
             guestArrival = mView.findViewById(R.id.guest_arrival);
 
-            guest_name.setText(name);
-
-            guestAuthorArrival.setText(arrival);
-            guestArrival.setText(arrival);
-
         }
+
 
         @Override
         public void onClick(View v) {
 
         }
-    }
-
-    private void onYesBtn(String eventId, String demoId, String guestName) {
-
-        Map<String, Object> guestMap = new HashMap<>();
-        guestMap.put("arrival", "Yes (A)");
-
-        mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap).addOnSuccessListener(aVoid -> {
-
-            Toast.makeText(mContext, guestName + " says Yes", Toast.LENGTH_SHORT).show();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(mContext, "Something was wrong!", Toast.LENGTH_SHORT).show();
-        });
-
-    }
-
-    private void onNoBtn(String eventId, String demoId, String guestName) {
-
-        Map<String, Object> guestMap = new HashMap<>();
-        guestMap.put("arrival", "No (A)");
-
-        mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap).addOnSuccessListener(aVoid -> {
-            Toast.makeText(mContext, guestName + " says No", Toast.LENGTH_SHORT).show();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(mContext, "Something was wrong!", Toast.LENGTH_SHORT).show();
-        });
-    }
-
-    private void onMaybeBtn(String eventId, String demoId, String guestName) {
-
-        Map<String, Object> guestMap = new HashMap<>();
-        guestMap.put("arrival", "Maybe (A)");
-
-        mFirestore.collection("Events/" + eventId + "/Guests").document(demoId).update(guestMap).addOnSuccessListener(aVoid -> {
-            Toast.makeText(mContext, guestName + " says Maybe", Toast.LENGTH_SHORT).show();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(mContext, "Something was wrong!", Toast.LENGTH_SHORT).show();
-        });
     }
 
     public void updateList(List<Guest> newList) {
