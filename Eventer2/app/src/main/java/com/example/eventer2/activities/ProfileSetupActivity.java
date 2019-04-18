@@ -1,5 +1,6 @@
 package com.example.eventer2.activities;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -12,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,8 +26,11 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.R;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.theartofdev.edmodo.cropper.CropImage;
@@ -226,34 +231,58 @@ public class ProfileSetupActivity extends AppCompatActivity {
             download_uri = mUserImageUri;
         }
 
-        Map<String, String> userMap = new HashMap<>();
-        userMap.put("name", user_name );
-        userMap.put("phone", phone_number );
-        userMap.put("image", download_uri.toString());
-        userMap.put("demoId", phone_number + "blabla");
-        userMap.put("userId", mUser_id);
-        userMap.put("email", email);
+        FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task1 -> {
+            if(!task1.isSuccessful()){
+                Log.i("Auth", "Auth: getInstanceId failed", task1.getException());
+                return;
+            }
 
-        Map<String, String> contactMap = new HashMap<>();
-        contactMap.put("name", user_name );
-        contactMap.put("number", phone_number );
-        contactMap.put("image", download_uri.toString());
-        contactMap.put("demoId", phone_number + "blabla");
-        contactMap.put("userId", mUser_id);
+            String token_id = task1.getResult().getToken();
+            Log.i("Auth", "Token ID: " + token_id);
 
-        mFirestore.collection("Users").document(mUser_id).set(userMap).addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
+            Map<String, String> userMap = new HashMap<>();
+            userMap.put("name", user_name );
+            userMap.put("phone", phone_number );
+            userMap.put("image", download_uri.toString());
+            userMap.put("demoId", phone_number + "blabla");
+            userMap.put("userId", mUser_id);
+            userMap.put("email", email);
+            userMap.put("tokenId", token_id);
+
+            Map<String, String> contactMap = new HashMap<>();
+            contactMap.put("name", user_name );
+            contactMap.put("number", phone_number );
+            contactMap.put("image", download_uri.toString());
+            contactMap.put("demoId", phone_number + "blabla");
+            contactMap.put("userId", mUser_id);
+            contactMap.put("tokenId", token_id);
+
+
+            mFirestore.collection("Users").document(mUser_id).set(userMap).addOnSuccessListener(aVoid -> {
+                mFirestore.collection("Contacts").document(mUser_id).set(contactMap);
                 Toast.makeText(ProfileSetupActivity.this, "The user Settings are updated", Toast.LENGTH_LONG).show();
                 Intent mainIntent = new Intent(ProfileSetupActivity.this, MainActivity.class);
                 startActivity(mainIntent);
                 finish();
 
-            }else {
-                String error = task.getException().getMessage();
-                Toast.makeText(ProfileSetupActivity.this, "Firestore Error: " + error, Toast.LENGTH_LONG).show();
-            }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(ProfileSetupActivity.this, "Firestore Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
         });
-        mFirestore.collection("Contacts").document(mUser_id).set(contactMap);
+
+//        mFirestore.collection("Users").document(mUser_id).set(userMap).addOnCompleteListener(task -> {
+//            if(task.isSuccessful()){
+//                Toast.makeText(ProfileSetupActivity.this, "The user Settings are updated", Toast.LENGTH_LONG).show();
+//                Intent mainIntent = new Intent(ProfileSetupActivity.this, MainActivity.class);
+//                startActivity(mainIntent);
+//                finish();
+//
+//            }else {
+//                String error = task.getException().getMessage();
+//                Toast.makeText(ProfileSetupActivity.this, "Firestore Error: " + error, Toast.LENGTH_LONG).show();
+//            }
+//        });
+
         mProgressBar.setVisibility(View.INVISIBLE);
 
     }

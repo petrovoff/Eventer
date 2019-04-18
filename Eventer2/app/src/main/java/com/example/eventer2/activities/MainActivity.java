@@ -32,6 +32,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.security.Permission;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -211,10 +213,19 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void logOut(){
-        mAuth.signOut();
-        mData.setUserName(null);
+        String currentUserId = mAuth.getCurrentUser().getUid();
+
+        Map<String, Object> tokenMapDelete = new HashMap<>();
+        tokenMapDelete.put("tokenId", "");
+        mFirestore.collection("Users").document(currentUserId).update(tokenMapDelete).addOnSuccessListener(aVoid -> {
+            mFirestore.collection("Contacts").document(currentUserId).update(tokenMapDelete);
+
+            mAuth.signOut();
+            mData.setUserName(null);
+
 //        mData.setUserPhone(null);
-        sendToLogin();
+            sendToLogin();
+        });
     }
 
     private void sendToLogin(){
