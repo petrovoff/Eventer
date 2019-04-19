@@ -134,13 +134,13 @@ public class NewEventActivity extends AppCompatActivity {
             mDay = dayOfMonth;
 
             month = month + 1;
-            String date = dayOfMonth + "/" + month + "/" + year;
+            String date = year + "-" + month + "-" + dayOfMonth;
             mStartDisplayDate.setText(date);
         };
 
         mDateEndListener = (view, year, month, dayOfMonth) -> {
             month = month + 1;
-            String date = dayOfMonth + "/" + month + "/" + year;
+            String date = year + "-" + month + "-" + dayOfMonth;
             mEndDisplayDate.setText(date);
         };
 

@@ -1,6 +1,7 @@
 package com.example.eventer2.activities;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
@@ -16,6 +17,7 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private String userImageUrl;
     private String userName;
     private String userPhone;
+    private String userEmail;
     private String[] mPerm;
 
     private FirebaseAuth mAuth;
@@ -85,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(mAuth.getCurrentUser() != null) {
-
         }
 
     }
@@ -139,8 +141,10 @@ public class MainActivity extends AppCompatActivity {
             userImageUrl = mData.getUserImageUri();
             userName = mData.getUserName();
             userPhone = mData.getUserPhone();
+            userEmail = mData.getUserEmail();
 
-            if(userImageUrl != null && userName != null && userPhone != null) {
+            if(userName != null || userPhone != null || userEmail != null){
+
             }else {
                 mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -148,11 +152,13 @@ public class MainActivity extends AppCompatActivity {
                             String imageUrl = task.getResult().getString("image");
                             String name = task.getResult().getString("name");
                             String phone = task.getResult().getString("phone");
+                            String email = task.getResult().getString("email");
 
                             if(imageUrl != null && name != null && phone != null) {
                                 mData.setUserName(name);
                                 mData.setUserImageUri(imageUrl);
                                 mData.setUserPhone(phone);
+                                mData.setUserEmail(email);
                             }
 
                         }
@@ -160,8 +166,24 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
 
-        }
+            if(userEmail == null){
+                mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult().exists()) {
+                            String email = task.getResult().getString("email");
 
+                            if(email != null) {
+                                mData.setUserEmail(email);
+                            }
+                        }
+                    }
+                });
+            }
+            Log.i("Data", "Resume Email: " + mData.getUserEmail());
+            Log.i("Data", "Resume Phone: " + mData.getUserPhone());
+            Log.i("Data", "Resume Name: " + mData.getUserName());
+
+        }
     }
 
     @Override
@@ -182,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent settingsIntent = new Intent(MainActivity.this, ProfileSetupActivity.class);
                 settingsIntent.putExtra("info", "0");
                 startActivity(settingsIntent);
+                finish();
                 return true;
 
             default: return false;
@@ -220,10 +243,11 @@ public class MainActivity extends AppCompatActivity {
         mFirestore.collection("Users").document(currentUserId).update(tokenMapDelete).addOnSuccessListener(aVoid -> {
             mFirestore.collection("Contacts").document(currentUserId).update(tokenMapDelete);
 
-            mAuth.signOut();
             mData.setUserName(null);
+            mData.setUserEmail(null);
+            mAuth.signOut();
 
-//        mData.setUserPhone(null);
+
             sendToLogin();
         });
     }
@@ -249,8 +273,25 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        finish();
+//        super.onBackPressed();
+        exitDialog().show();
+    }
+
+    private AlertDialog exitDialog(){
+        //exit dialog
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setMessage("Do you want exit from Eventer?")
+                .setTitle("Exit from Eventer");
+        //yes
+        dialogBuilder.setPositiveButton("Yes", (dialog, id) -> {
+            finish();
+        });
+        //no
+        dialogBuilder.setNegativeButton("No", (dialog, id) -> {
+
+        });
+
+        return dialogBuilder.create();
     }
 
 

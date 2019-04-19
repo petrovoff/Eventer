@@ -9,10 +9,12 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.eventer2.Data.ApplicationData;
 import com.example.eventer2.R;
 import com.example.eventer2.adapters.EventRecyclerAdapter;
 import com.example.eventer2.models.Event;
@@ -68,8 +70,8 @@ public class YoursEventFragment extends Fragment {
         mEventRecyclerView = mView.findViewById(R.id.your_event_list_view);
         today = new Date();
 
-
         mAuth = FirebaseAuth.getInstance();
+
 
         mEventRecyclerAdapter = new EventRecyclerAdapter(mEventList);
         mEventRecyclerView.setLayoutManager(new LinearLayoutManager(container.getContext()));
@@ -85,7 +87,7 @@ public class YoursEventFragment extends Fragment {
 
         if(mAuth.getCurrentUser() != null){
 
-            final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             final String currentUserId = mAuth.getCurrentUser().getUid();
             mFirestore = FirebaseFirestore.getInstance();
 

@@ -16,6 +16,7 @@ public class ApplicationData extends Application {
     private String userImageUri;
     private String userName;
     private String userPhone;
+    private String userEmail;
 
     //invite activity
     public ArrayList<InvitedFriend> friendsList = new ArrayList<>();
@@ -77,5 +78,13 @@ public class ApplicationData extends Application {
 
     public void setInfoState(int infoState) {
         this.infoState = infoState;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 }

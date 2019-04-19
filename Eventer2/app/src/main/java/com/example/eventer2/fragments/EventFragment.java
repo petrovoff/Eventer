@@ -38,8 +38,6 @@ public class EventFragment extends Fragment {
         mTabLayout = view.findViewById(R.id.event_tablayout_id);
         mViewPager = view.findViewById(R.id.event_viewpager_id);
 
-
-
         return view;
     }
 

@@ -1,16 +1,31 @@
 package com.example.eventer2.activities;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.app.Dialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.CalendarContract;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -28,6 +43,7 @@ import com.example.eventer2.adapters.GuestPhoneAdapter;
 import com.example.eventer2.adapters.GuestRecyclerAdapter;
 import com.example.eventer2.listeners.CustomItemListener;
 import com.example.eventer2.models.BooVariable;
+import com.example.eventer2.models.Event;
 import com.example.eventer2.models.Guest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -49,10 +65,10 @@ public class EventInfoActivity extends AppCompatActivity {
     private static final String TAG = "EventInfoActivity";
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
-    final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-    final Date today = new Date();
+
 
     private ApplicationData mData;
+    private Event mEvent;
 
     private TextView mName;
     private TextView mTheme;
@@ -70,6 +86,12 @@ public class EventInfoActivity extends AppCompatActivity {
     private String mAuthorId;
     private String location;
     private int mState;
+
+    //calendar
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    private final Date today = new Date();
+    private long calId;
+    private String email;
 
     private ArrayList<Guest> guest_list;
     private ArrayList<Guest> guest_phone_list;
@@ -90,6 +112,9 @@ public class EventInfoActivity extends AppCompatActivity {
 
         mState = 1;
         onLoadGuests();
+
+        email = mData.getUserEmail();
+        Log.i("Data", email);
 
         guest_list = new ArrayList<>();
         guest_phone_list = new ArrayList<>();
@@ -117,6 +142,8 @@ public class EventInfoActivity extends AppCompatActivity {
                     final String endTime = task.getResult().getString("endTime");
                     String image = task.getResult().getString("image_url");
                     mAuthorId = task.getResult().getString("authorId");
+
+
 
                     mName.setText(name);
                     mTheme.setText(theme);
@@ -151,16 +178,10 @@ public class EventInfoActivity extends AppCompatActivity {
                         }
                     }
 
-//                        mExportBtn.setOnClickListener(v -> {
-//                            Intent intent = new Intent(Intent.ACTION_EDIT);
-//                            intent.setType("vnd.android.cursor.item/event");
-////                                intent.putExtra(CalendarContract.Events.DTSTART, "21/5/2019 15:26:33");
-//                            intent.putExtra(CalendarContract.Events.DTEND, endDate);
-//                            intent.putExtra(CalendarContract.Events.TITLE, name);
-//                            intent.putExtra(CalendarContract.Events.EVENT_LOCATION, location);
-//                            intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, "26.06.2019 15:26:33");
-//                            startActivity(intent);
-//                        });
+                    mExportBtn.setOnClickListener(v -> {
+                        mEvent = new Event(mAuthorId, name, theme, startDate, endDate, startTime, endTime, location);
+                        calendarPermission();
+                    });
                 }
             }else {
                 Toast.makeText(this, "Something was wrong: " + task.getException(), Toast.LENGTH_SHORT).show();
@@ -376,6 +397,230 @@ public class EventInfoActivity extends AppCompatActivity {
             demoList = guest_phone_list;
         }
         return demoList;
+    }
 
+    private AlertDialog calendarDialog(){
+        PackageManager pmv = getPackageManager();
+
+        List<ApplicationInfo> packages = pmv.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        //dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Export event to calendar.")
+                .setTitle("Calendar");
+
+        //phone calendar
+        builder.setPositiveButton("Calendar", (dialog, id) -> {
+            exportEventToCalendar();
+            Toast.makeText(this, "Exporting...", Toast.LENGTH_SHORT).show();
+            calendarIntent("com.android.calendar");
+        });
+
+        //google calendar
+        builder.setNegativeButton("Google Calendar", (dialog, id) -> {
+
+            if(googleCalendarExist()){
+
+                if(userEmailExist()){
+                    exportEventToGoogleCalendar();
+                    Toast.makeText(this, "Exporting...", Toast.LENGTH_SHORT).show();
+                    calendarIntent("com.google.android.calendar");
+                }else {
+                    Toast.makeText(this, "You must have email!", Toast.LENGTH_SHORT).show();
+                }
+            }else {
+                playStoreDialog().show();
+            }
+        });
+
+        return builder.create();
+    }
+
+    private AlertDialog playStoreDialog(){
+        //play store dialog
+        AlertDialog.Builder appStoreDialog = new AlertDialog.Builder(this);
+        appStoreDialog.setMessage("You dont have Google Calendar, do you want to install it? You can export event in phone calendar.")
+                .setTitle("Google Calendar");
+        //open play store
+        appStoreDialog.setPositiveButton("Go to Play Store", (playDialog, playId) -> {
+            sendToPlayStore();
+        });
+        //back
+        appStoreDialog.setNegativeButton("Cancel", (playDialog, playId) -> {
+
+        });
+
+        return appStoreDialog.create();
+    }
+
+    private boolean googleCalendarExist(){
+        PackageManager pmv = getPackageManager();
+        List<ApplicationInfo> packages = pmv.getInstalledApplications(PackageManager.GET_META_DATA);
+        List<String> apps = new ArrayList<>();
+        for (ApplicationInfo packageInfo : packages) {
+            String appPackageName = packageInfo.packageName;
+            if(appPackageName.equals("com.google.android.calendar")) {
+                apps.add(appPackageName);
+            }
+        }
+
+        if(apps.contains("com.google.android.calendar")){
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    private boolean userEmailExist(){
+
+        if(email.isEmpty()){
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+    private void exportEventToGoogleCalendar(){
+
+        String[] projection =
+                new String[]{
+                        CalendarContract.Calendars._ID,
+                        CalendarContract.Calendars.NAME,
+                        CalendarContract.Calendars.ACCOUNT_NAME,
+                        CalendarContract.Calendars.ACCOUNT_TYPE};
+        Cursor calCursor =
+                getContentResolver().
+                        query(CalendarContract.Calendars.CONTENT_URI,
+                                projection,
+                                CalendarContract.Calendars.VISIBLE + " = 1",
+                                null,
+                                CalendarContract.Calendars._ID + " ASC");
+        if (calCursor.moveToFirst()) {
+            do {
+                long id = calCursor.getLong(0);
+                String displayName = calCursor.getString(1);
+                if(displayName != null) {
+                    if (displayName.equals(email)) {
+                        calId = id;
+                        Log.i("EventInfoActivity", "Name:" + displayName + "Id" + calId);
+
+                        ContentResolver cr = getContentResolver();
+                        ContentValues values = new ContentValues();
+                        values.put(CalendarContract.Events.DTSTART, mEvent.getCalendarDateStart().getTimeInMillis());
+                        values.put(CalendarContract.Events.DTEND, mEvent.getCalendarDateEnd().getTimeInMillis());
+                        values.put(CalendarContract.Events.TITLE, mEvent.getName());
+                        values.put(CalendarContract.Events.DESCRIPTION, "");
+                        values.put(CalendarContract.Events.CALENDAR_ID, calId);
+                        values.put(CalendarContract.Events.EVENT_TIMEZONE, "Europe/Serbia");
+                        values.put(CalendarContract.Events.EVENT_LOCATION, mEvent.getEventLocation());
+
+                        Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
+
+                        long eventID = Long.parseLong(uri.getLastPathSegment());
+                    }
+                }
+            } while (calCursor.moveToNext());
+        }
+    }
+
+    private void exportEventToCalendar(){
+
+        String[] projection =
+                new String[]{
+                        CalendarContract.Calendars._ID,
+                        CalendarContract.Calendars.NAME,
+                        CalendarContract.Calendars.ACCOUNT_NAME,
+                        CalendarContract.Calendars.ACCOUNT_TYPE};
+        Cursor calCursor =
+                getContentResolver().
+                        query(CalendarContract.Calendars.CONTENT_URI,
+                                projection,
+                                CalendarContract.Calendars.VISIBLE + " = 1",
+                                null,
+                                CalendarContract.Calendars._ID + " ASC");
+        if (calCursor.moveToFirst()) {
+            do {
+                calId = 1;
+
+                ContentResolver cr = getContentResolver();
+                ContentValues values = new ContentValues();
+                values.put(CalendarContract.Events.DTSTART, mEvent.getCalendarDateStart().getTimeInMillis());
+                values.put(CalendarContract.Events.DTEND, mEvent.getCalendarDateEnd().getTimeInMillis());
+                values.put(CalendarContract.Events.TITLE, mEvent.getName());
+                values.put(CalendarContract.Events.DESCRIPTION, "");
+                values.put(CalendarContract.Events.CALENDAR_ID, calId);
+                values.put(CalendarContract.Events.EVENT_TIMEZONE, "Europe/Serbia");
+                values.put(CalendarContract.Events.EVENT_LOCATION, mEvent.getEventLocation());
+                if (ActivityCompat.checkSelfPermission(EventInfoActivity.this, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
+
+                long eventID = Long.parseLong(uri.getLastPathSegment());
+
+            } while (calCursor.moveToNext());
+        }
+    }
+
+    private void calendarIntent(String packageInfo){
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageInfo);
+        if (launchIntent != null) {
+            startActivity(launchIntent);//null pointer check in case package name was not found
+        }
+    }
+
+    private void sendToPlayStore(){
+        final String appPackageName = "com.google.android.calendar"; // getPackageName() from Context or Activity object
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+        } catch (android.content.ActivityNotFoundException anfe) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+        }
+
+    }
+
+    private void calendarPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
+                    != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Calendar permission", Toast.LENGTH_LONG).show();
+                //pitamo da nam korisnik odobri dozvolu za koriscenje
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR}, 4);
+            }else {
+                calendarDialog().show();
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 4) {
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+
+                if (permission.equals(Manifest.permission.WRITE_CALENDAR)) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+
+                    }
+                }
+                if (permission.equals(Manifest.permission.READ_CALENDAR)) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+
+                    }
+                }
+            }
+        }
     }
 }

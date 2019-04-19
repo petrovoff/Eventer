@@ -83,7 +83,7 @@ public class InvitedEventFragment extends Fragment {
 
             mFirestore = FirebaseFirestore.getInstance();
             final String currentUserId = mAuth.getCurrentUser().getUid();
-            final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
            mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").orderBy("startDate", Query.Direction.DESCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
                if(queryDocumentSnapshots != null){

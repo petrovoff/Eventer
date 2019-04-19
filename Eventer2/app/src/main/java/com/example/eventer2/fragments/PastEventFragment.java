@@ -64,10 +64,6 @@ public class PastEventFragment extends Fragment {
         mEventRecyclerView.setLayoutManager(new LinearLayoutManager(container.getContext()));
         mEventRecyclerView.setAdapter(mEventRecyclerAdapter);
 
-
-
-
-
         return mView;
     }
 
@@ -79,22 +75,21 @@ public class PastEventFragment extends Fragment {
         if(mAuth.getCurrentUser() != null){
 
             String currentUserId = mAuth.getCurrentUser().getUid();
-            final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             mFirestore = FirebaseFirestore.getInstance();
 
-            mFirestore.collection("Events").orderBy("startDate", Query.Direction.ASCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
+            mFirestore.collection("Events").orderBy("endDate", Query.Direction.ASCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
                 if(queryDocumentSnapshots != null){
-                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
-                        String eventId = doc.getDocument().getId();
+                    for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
+                        String eventId = doc.getId();
 
-                        Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
+                        Event event = doc.toObject(Event.class).returnId(eventId);
                         String endDate = event.getEndDate();
                         String authorId = event.getAuthorId();
 
                         try {
                             Date endDateEvent = dateFormat.parse(endDate);
                             if(today.after(endDateEvent)){
-
                                 if(!authorId.equals(currentUserId)) {
                                     mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").addSnapshotListener((eventQueryDocument, e1) -> {
                                         if (eventQueryDocument != null) {
@@ -107,7 +102,6 @@ public class PastEventFragment extends Fragment {
                                                         Date eventEndDate = dateFormat.parse(date);
 
                                                         if (today.after(eventEndDate)) {
-
                                                             mEventList.add(eventGuest);
                                                             mEventRecyclerAdapter.notifyDataSetChanged();
                                                         }

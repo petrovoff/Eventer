@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.eventer2.Data.ApplicationData;
@@ -33,7 +34,7 @@ public class AccountFragment extends Fragment {
 
 
     private CircleImageView mAccountImage;
-    private TextView mName, mPhone;
+    private TextView mName, mPhone, mEmail;
     private Button mDataBtn;
     private ProgressBar mAccountProgress;
 
@@ -41,6 +42,7 @@ public class AccountFragment extends Fragment {
     private String imageUri;
     private String userName;
     private String userPhone;
+    private String userEmail;
 
     private ApplicationData mData;
 
@@ -66,6 +68,7 @@ public class AccountFragment extends Fragment {
         mPhone = view.findViewById(R.id.account_phone);
         mAccountImage = view.findViewById(R.id.account_image);
         mAccountProgress = view.findViewById(R.id.account_progress);
+        mEmail = view.findViewById(R.id.account_email);
         mDataBtn = view.findViewById(R.id.account_edit);
 
         mAuth = FirebaseAuth.getInstance();
@@ -79,22 +82,28 @@ public class AccountFragment extends Fragment {
             userName = mData.getUserName();
             userPhone = mData.getUserPhone();
             imageUri = mData.getUserImageUri();
+            userEmail = mData.getUserEmail();
+
+            mEmail.setText(userEmail);
+
 
             //postavljanje podataka
             mName.setText(userName);
             mPhone.setText(userPhone);
+            mEmail.setText(userEmail);
+
             Glide.with(AccountFragment.this).load(imageUri).into(mAccountImage);
             mAccountProgress.setVisibility(View.INVISIBLE);
 //                mFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 //                    @Override
 //                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 //                        if (task.isSuccessful()) {
-//                            userName = task.getResult().getString("name");
-//                            userPhone = task.getResult().getString("phone");
-//                            imageUri = task.getResult().getString("image");
 //
-//                            mName.setText(userName);
-//                            mPhone.setText(userPhone);
+//                            String email = task.getResult().getString("email");
+//                            if(!email.equals(userEmail)){
+//                                mEmail.setText(email);
+//                                mData.setUserEmail(email);
+//                            }
 //
 //                            Glide.with(AccountFragment.this).load(imageUri).into(mAccountImage);
 //                        }

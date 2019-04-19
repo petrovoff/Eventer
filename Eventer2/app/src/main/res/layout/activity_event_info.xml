@@ -161,11 +161,10 @@
 
     <ImageView
         android:id="@+id/export_event_btn"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
-        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/info_location"
         app:srcCompat="@drawable/ic_export_event" />

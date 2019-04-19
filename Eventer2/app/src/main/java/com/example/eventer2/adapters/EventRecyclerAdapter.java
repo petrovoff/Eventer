@@ -60,7 +60,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         holder.setIsRecyclable(false);
 
         final Date today = new Date();
-        final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
         final String eventId = mEventList.get(position).getEventId();
         final String currentUserId = mAuth.getCurrentUser().getUid();
@@ -97,8 +97,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                                         notifyDataSetChanged();
                                     }
                                 });
-                            }else {
-                                mFirestore.collection("Events").document(eventId).delete();
                                 mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
@@ -106,7 +104,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                                         notifyDataSetChanged();
                                     }
                                 });
-
                             }
                         }
                     }

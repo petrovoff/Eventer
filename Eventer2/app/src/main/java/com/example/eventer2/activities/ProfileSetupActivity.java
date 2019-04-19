@@ -57,6 +57,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
     private String username;
     private String mUser_id;
     private String mInfo = "0";
+    private String mUserEmail = "";
     private boolean isChanged = false;
 
     private StorageReference mStorageReference;
@@ -82,6 +83,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
             }
         }
 
+
         mUserPhone = mData.getUserPhone();
         if(mUserPhone != null) {
 
@@ -93,6 +95,11 @@ public class ProfileSetupActivity extends AppCompatActivity {
         if(mInfo.equals("0")){
             mProgressDot1.setVisibility(View.INVISIBLE);
             mProgressDot2.setVisibility(View.INVISIBLE);
+        }
+
+        mUserEmail = mData.getUserEmail();
+        if(mUserEmail != null){
+            mEmail.setText(mUserEmail);
         }
 
         mUser_id = mAuth.getCurrentUser().getUid();
@@ -154,12 +161,13 @@ public class ProfileSetupActivity extends AppCompatActivity {
                                 });
                     } else {
                         storeFirestore(null, user_name, mUserPhone, user_email);
+
                     }
                 }
+                mData.setUserEmail(null);
             });
 
             mUserImage.setOnClickListener(v -> {
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (ContextCompat.checkSelfPermission(ProfileSetupActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
                             != PackageManager.PERMISSION_GRANTED) {
@@ -270,18 +278,6 @@ public class ProfileSetupActivity extends AppCompatActivity {
             });
         });
 
-//        mFirestore.collection("Users").document(mUser_id).set(userMap).addOnCompleteListener(task -> {
-//            if(task.isSuccessful()){
-//                Toast.makeText(ProfileSetupActivity.this, "The user Settings are updated", Toast.LENGTH_LONG).show();
-//                Intent mainIntent = new Intent(ProfileSetupActivity.this, MainActivity.class);
-//                startActivity(mainIntent);
-//                finish();
-//
-//            }else {
-//                String error = task.getException().getMessage();
-//                Toast.makeText(ProfileSetupActivity.this, "Firestore Error: " + error, Toast.LENGTH_LONG).show();
-//            }
-//        });
 
         mProgressBar.setVisibility(View.INVISIBLE);
 
