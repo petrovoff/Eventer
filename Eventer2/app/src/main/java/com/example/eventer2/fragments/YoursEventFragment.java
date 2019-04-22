@@ -87,37 +87,33 @@ public class YoursEventFragment extends Fragment {
 
         if(mAuth.getCurrentUser() != null){
 
-            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
             final String currentUserId = mAuth.getCurrentUser().getUid();
             mFirestore = FirebaseFirestore.getInstance();
 
-            mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").orderBy("startDate", Query.Direction.DESCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
-                if(queryDocumentSnapshots != null){
-                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
-                        if(doc.getType() == DocumentChange.Type.ADDED){
-                            String eventId = doc.getDocument().getId();
-                            final Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
+            mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").addSnapshotListener((eventQueryDocument, e1) -> {
+                if (eventQueryDocument != null) {
+                    for (DocumentChange eventDoc : eventQueryDocument.getDocumentChanges()) {
+                        if (eventDoc.getType() == DocumentChange.Type.ADDED) {
+                            Event event = eventDoc.getDocument().toObject(Event.class);
 
-                            mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).get().addOnCompleteListener(task -> {
-                                if(task.isSuccessful()){
-                                    if(task.getResult().exists()){
+                            Log.i("Event", "" + event.getEventId());
+                            String date = event.getEndDate();
+                            String time = event.getEndTime();
 
-                                        String endDate = task.getResult().getString("endDate");
-                                        try {
-                                            Date eventEndDate = dateFormat.parse(endDate);
-                                            if(today.before(eventEndDate)) {
-                                                mEventList.add(event);
-                                                mEventRecyclerAdapter.notifyDataSetChanged();
-                                            }
-                                        } catch (ParseException e1) {
-                                            e1.printStackTrace();
-                                        }
+                            String dateTime = date + " " + time;
 
-                                    }
-
+                            try {
+                                Date eventEndDate = dateFormat.parse(dateTime);
+                                if(today.before(eventEndDate)) {
+                                    mEventList.add(event);
+                                    mEventRecyclerAdapter.notifyDataSetChanged();
                                 }
-                            });
+                            } catch (ParseException e) {
+                                e1.printStackTrace();
+                            }
                         }
+
                     }
                 }
             });

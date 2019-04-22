@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -329,9 +330,12 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
     public void onSendSms(String eventName, String location, String startDate, String startTime){
         SmsManager sm = SmsManager.getDefault();
         String number = "+381645871290";
+        String dateTime = startDate + " " + startTime;
 //        String number = "+381645741511";
-        String msg = "Invite to: " + eventName + "\n" + location;
+        String msg = eventName + "\n Location: " + location;
         sm.sendTextMessage(number,null, msg,null,null);
+        Log.d("PORUKA", "SMS size:" + msg.length());
+        Log.d("PORUKA", "Number: " + number);
     }
 
     private void addInUsers(String name, String number, String demo, String id){
@@ -361,8 +365,10 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                     String startTime = task.getResult().getString("startTime");
                     String endTime = task.getResult().getString("endTime");
                     String author = task.getResult().getString("authorId");
+                    String eventId = task.getResult().getString("eventId");
 
                     HashMap<String, String> eventMap = new HashMap<>();
+                    eventMap.put("eventId", eventId);
                     eventMap.put("image_url", downloadUri);
                     eventMap.put("name", eventName);
                     eventMap.put("theme", theme);
@@ -396,8 +402,10 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                     String startTime = task.getResult().getString("startTime");
                     String endTime = task.getResult().getString("endTime");
                     String author = task.getResult().getString("authorId");
+                    String eventId = task.getResult().getString("eventId");
 
                     HashMap<String, String> eventMap = new HashMap<>();
+                    eventMap.put("eventId", eventId);
                     eventMap.put("image_url", downloadUri);
                     eventMap.put("name", eventName);
                     eventMap.put("theme", theme);
@@ -408,7 +416,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                     eventMap.put("endTime", endTime);
                     eventMap.put("authorId", author);
 
-                    onSendSms(name,location,startDate,startTime);
+                    onSendSms(eventName,location,startDate,startTime);
                     if(id != null){
                         mFirestore.collection("Users/" + id + "/InvitedEvents").document(eventId).set(eventMap);
                     }else {

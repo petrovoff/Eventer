@@ -83,26 +83,27 @@ public class InvitedEventFragment extends Fragment {
 
             mFirestore = FirebaseFirestore.getInstance();
             final String currentUserId = mAuth.getCurrentUser().getUid();
-            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 
            mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").orderBy("startDate", Query.Direction.DESCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
                if(queryDocumentSnapshots != null){
                    for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
                        if(doc.getType()==DocumentChange.Type.ADDED){
-                           String eventId = doc.getDocument().getId();
-
-                           Event event = doc.getDocument().toObject(Event.class).returnId(eventId);
+                           Event event = doc.getDocument().toObject(Event.class);
                            String authorId = event.getAuthorId();
 
-                           String endDate = event.getEndDate();
-                           if (endDate != null) {
+                           String date = event.getEndDate();
+                           String time = event.getEndTime();
+
+                           String dateTime = date + " " + time;
+                           if (dateTime != null) {
                                try {
-                                   Date eventEndDate = dateFormat.parse(endDate);
+                                   Date eventEndDate = dateFormat.parse(dateTime);
 
                                    if (today.before(eventEndDate)) {
                                        if (!currentUserId.equals(authorId)) {
                                            mEventList.add(event);
-//                                           mEventRecyclerAdapter.notifyDataSetChanged();
+                                           mEventRecyclerAdapter.notifyDataSetChanged();
                                        }
                                    }
                                } catch (ParseException e1) {

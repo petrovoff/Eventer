@@ -29,6 +29,7 @@ import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -60,7 +61,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         holder.setIsRecyclable(false);
 
         final Date today = new Date();
-        final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 
         final String eventId = mEventList.get(position).getEventId();
         final String currentUserId = mAuth.getCurrentUser().getUid();
@@ -78,6 +79,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
 
         //otvaramo infoEvent
         holder.onInfoBtn(eventId);
+        holder.onCard(eventId);
 
 //        holder.onDeletePastEventsBtn(eventId);
 
@@ -168,8 +170,12 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                 if(task.getResult().exists()) {
                     String authorId = task.getResult().getString("authorId");
                     String endDate1 = task.getResult().getString("endDate");
+                    String endTime1 = task.getResult().getString("endTime");
+
+                    String dateTime = endDate1 + " " + endTime1;
+
                     try {
-                        Date eventEndDate = format.parse(endDate1);
+                        Date eventEndDate = format.parse(dateTime);
                         if (today.after(eventEndDate)) {
                             holder.setDeleteBtnVisible();
                         } else if (authorId.equals(currentUserId) && !today.after(eventEndDate)) {
@@ -217,6 +223,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         private TextView event_name;
         private TextView start_date, end_date, start_time, end_time;
         private ImageView info_btn;
+        private CardView event_card;
         private Button yes_btn;
         private Button no_btn;
         private Button maybe_btn;
@@ -228,6 +235,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
             super(itemView);
             mView = itemView;
 
+            event_card = mView.findViewById(R.id.event_card);
             info_btn = mView.findViewById(R.id.event_info_btn);
             yes_btn = mView.findViewById(R.id.event_list_yes);
             no_btn = mView.findViewById(R.id.event_list_no);
@@ -269,6 +277,15 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
 
         public void onInfoBtn(final String eventId) {
             info_btn.setOnClickListener(v -> {
+                Intent infoIntent = new Intent(mContext, EventInfoActivity.class);
+                infoIntent.putExtra("eventId", eventId);
+                infoIntent.putExtra("change", "0");
+                mContext.startActivity(infoIntent);
+            });
+        }
+
+        public void onCard(final String eventId) {
+            event_card.setOnClickListener(v -> {
                 Intent infoIntent = new Intent(mContext, EventInfoActivity.class);
                 infoIntent.putExtra("eventId", eventId);
                 infoIntent.putExtra("change", "0");
@@ -341,42 +358,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                     }));
         }
 
-
-//        public void onDeletePastEventsBtn(String eventId){
-//            delete_btn.setOnClickListener(v -> {
-//                String currentUserId = mAuth.getCurrentUser().getUid();
-//                mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
-//                    if(task.isSuccessful()){
-//                        if(task.getResult().exists()){
-//                            String authorId = task.getResult().getString("authorId");
-//
-//                            if(authorId != null) {
-//                                if (!authorId.equals(currentUserId)) {
-//                                    mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-//                                        @Override
-//                                        public void onSuccess(Void aVoid) {
-//                                            Toast.makeText(mContext, eventId + " deleted invited", Toast.LENGTH_SHORT).show();
-//                                            notifyDataSetChanged();
-//                                        }
-//                                    });
-//                                }else {
-//                                    mFirestore.collection("Events").document(eventId).delete();
-//                                    mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-//                                        @Override
-//                                        public void onSuccess(Void aVoid) {
-//                                            Toast.makeText(mContext, eventId + " deleted created", Toast.LENGTH_SHORT).show();
-//                                            notifyDataSetChanged();
-//                                        }
-//                                    });
-//
-//                                }
-//                            }
-//                        }
-//                    }
-//                });
-//            });
-//        }
-
         public void setInvisibleBtn(){
             yes_btn.setVisibility(mView.VISIBLE);
             no_btn.setVisibility(mView.VISIBLE);
@@ -388,13 +369,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
             no_btn.setVisibility(mView.INVISIBLE);
             maybe_btn.setVisibility(mView.INVISIBLE);
             invite_btn.setVisibility(mView.VISIBLE);
-        }
-
-        public void allInvisibleBtn(){
-            yes_btn.setVisibility(mView.INVISIBLE);
-            no_btn.setVisibility(mView.INVISIBLE);
-            maybe_btn.setVisibility(mView.INVISIBLE);
-            invite_btn.setVisibility(mView.INVISIBLE);
         }
 
         public void setDeleteBtnVisible(){

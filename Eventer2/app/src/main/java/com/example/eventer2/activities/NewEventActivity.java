@@ -71,6 +71,7 @@ public class NewEventActivity extends AppCompatActivity {
     private String getLocation = "0";
     private String mName, mLocation, mStartDate, mStartTime, mEndDate, mEndTime, mTheme, mEventPicture;
     private int mYear, mMonth, mDay, mHour, mMin;
+    private String eventId;
 
     private StorageReference mStorageReference;
     private FirebaseFirestore mFirebaseFirestore;
@@ -83,6 +84,8 @@ public class NewEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_event);
 
         init();
+
+        eventId = UUID.randomUUID().toString();
 
         //sredjuje bag prilikom postavljanja lokacije
         mCurrentUserId = mAuth.getCurrentUser().getUid();
@@ -134,13 +137,26 @@ public class NewEventActivity extends AppCompatActivity {
             mDay = dayOfMonth;
 
             month = month + 1;
-            String date = year + "-" + month + "-" + dayOfMonth;
+
+            String sMonth;
+            sMonth = "" + month;
+            if(month < 10){
+                sMonth = "0" + sMonth;
+            }
+            String date = year + "-" + sMonth + "-" + dayOfMonth;
             mStartDisplayDate.setText(date);
         };
 
         mDateEndListener = (view, year, month, dayOfMonth) -> {
             month = month + 1;
-            String date = year + "-" + month + "-" + dayOfMonth;
+
+            String sMonth;
+            sMonth = "" + month;
+            if(month < 10){
+                sMonth = "0" + sMonth;
+            }
+            String date = year + "-" + sMonth + "-" + dayOfMonth;
+
             mEndDisplayDate.setText(date);
         };
 
@@ -148,12 +164,31 @@ public class NewEventActivity extends AppCompatActivity {
             mHour = hour;
             mMin = minute;
 
-            String time = hour + ":" + minute;
+            String sHour = "" + hour;
+            String sMinute = "" + minute;
+            if(hour < 10){
+                sHour = "0" + sHour;
+            }
+            if(minute < 10) {
+                sMinute = "0" + sMinute;
+            }
+
+            String time = sHour + ":" + sMinute;
             mStartDisplayTime.setText(time);
         };
 
         mTimeEndListener = (view, hour, minute) ->{
-            String time = hour + ":" + minute;
+            String sHour = "" + hour;
+            String sMinute = "" + minute;
+            if(hour < 10){
+                sHour = "0" + sHour;
+            }
+            if(minute < 10) {
+                sMinute = "0" + sMinute;
+            }
+
+            String time = sHour + ":" + sMinute;
+
             mEndDisplayTime.setText(time);
         };
         //set event image
@@ -196,12 +231,10 @@ public class NewEventActivity extends AppCompatActivity {
                                 filePath.getDownloadUrl().addOnSuccessListener(uri -> {
                                 final String downloadUri = uri.toString();
 
-                                    mEventPicture = downloadUri;
-
-
-                                final String eventId = UUID.randomUUID().toString();
+                                mEventPicture = downloadUri;
 
                                 Map<String, Object> eventMap = new HashMap<>();
+                                eventMap.put("eventId", eventId);
                                 eventMap.put("image_url", downloadUri);
                                 eventMap.put("name", mName);
                                 eventMap.put("theme", mTheme);
@@ -237,9 +270,8 @@ public class NewEventActivity extends AppCompatActivity {
                             })).addOnFailureListener(e -> mEventProgress.setVisibility(View.INVISIBLE));
                     }else {
 
-                        final String eventId = UUID.randomUUID().toString();
-
                         Map<String, Object> eventMap = new HashMap<>();
+                        eventMap.put("eventId", eventId);
 //                        eventMap.put("image_url", downloadUri);
                         eventMap.put("name", mName);
                         eventMap.put("theme", mTheme);

@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +39,9 @@ public class PastEventFragment extends Fragment {
     private List<Event> mEventList;
     private EventRecyclerAdapter mEventRecyclerAdapter;
     private Date today;
+
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    final SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
 
     private FirebaseFirestore mFirestore;
     private FirebaseAuth mAuth;
@@ -75,81 +79,65 @@ public class PastEventFragment extends Fragment {
         if(mAuth.getCurrentUser() != null){
 
             String currentUserId = mAuth.getCurrentUser().getUid();
-            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+            final SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
             mFirestore = FirebaseFirestore.getInstance();
 
-            mFirestore.collection("Events").orderBy("endDate", Query.Direction.ASCENDING).addSnapshotListener((queryDocumentSnapshots, e) -> {
-                if(queryDocumentSnapshots != null){
-                    for(DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()){
-                        String eventId = doc.getId();
+            mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").orderBy("endDate", Query.Direction.ASCENDING).addSnapshotListener((eventQueryDocument, e1) -> {
+                if (eventQueryDocument != null) {
+                    for (DocumentChange eventDoc : eventQueryDocument.getDocumentChanges()) {
+                        if (eventDoc.getType() == DocumentChange.Type.ADDED) {
 
-                        Event event = doc.toObject(Event.class).returnId(eventId);
-                        String endDate = event.getEndDate();
-                        String authorId = event.getAuthorId();
+                            Event eventGuest = eventDoc.getDocument().toObject(Event.class);
+                            String date = eventGuest.getEndDate();
+                            String time = eventGuest.getEndTime();
 
-                        try {
-                            Date endDateEvent = dateFormat.parse(endDate);
-                            if(today.after(endDateEvent)){
-                                if(!authorId.equals(currentUserId)) {
-                                    mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").addSnapshotListener((eventQueryDocument, e1) -> {
-                                        if (eventQueryDocument != null) {
-                                            for (DocumentSnapshot eventDoc : queryDocumentSnapshots.getDocuments()) {
-                                                Event eventGuest = eventDoc.toObject(Event.class).returnId(eventId);
-                                                String date = eventGuest.getEndDate();
+                            String dateTime = date + " " + time;
 
-                                                if (date != null) {
-                                                    try {
-                                                        Date eventEndDate = dateFormat.parse(date);
+                            if (date != null) {
+                                try {
+                                    Date eventEndDate = dateFormat.parse(dateTime);
 
-                                                        if (today.after(eventEndDate)) {
-                                                            mEventList.add(eventGuest);
-                                                            mEventRecyclerAdapter.notifyDataSetChanged();
-                                                        }
-                                                    } catch (ParseException e2) {
-                                                        e2.printStackTrace();
-                                                    }
+                                    if (today.after(eventEndDate)) {
 
-                                                }
-                                            }
-                                        }
-                                    });
-                                }else {
-                                    mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").addSnapshotListener((eventQueryDocument, e1) -> {
-                                        if (eventQueryDocument != null) {
-                                            for (DocumentChange eventDoc : eventQueryDocument.getDocumentChanges()) {
-                                                if (eventDoc.getType() == DocumentChange.Type.ADDED) {
-                                                    Event eventGuest = eventDoc.getDocument().toObject(Event.class).returnId(eventId);
-                                                    String date = eventGuest.getEndDate();
-
-                                                    if (date != null) {
-                                                        try {
-                                                            Date eventEndDate = dateFormat.parse(date);
-
-                                                            if (today.after(eventEndDate)) {
-
-                                                                mEventList.add(eventGuest);
-                                                                mEventRecyclerAdapter.notifyDataSetChanged();
-                                                            }
-                                                        } catch (ParseException e2) {
-                                                            e2.printStackTrace();
-                                                        }
-
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    });
+                                        mEventList.add(eventGuest);
+                                        mEventRecyclerAdapter.notifyDataSetChanged();
+                                    }
+                                } catch (ParseException e2) {
+                                    e2.printStackTrace();
                                 }
 
                             }
-
-                        } catch (ParseException e1) {
-                            e1.printStackTrace();
                         }
 
+                    }
+                }
+            });
 
+            mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").addSnapshotListener((eventQueryDocument, e1) -> {
+                if (eventQueryDocument != null) {
+                    for (DocumentChange eventDoc : eventQueryDocument.getDocumentChanges()) {
+                        if (eventDoc.getType() == DocumentChange.Type.ADDED) {
+                            Event eventGuest = eventDoc.getDocument().toObject(Event.class);
 
+                            Log.i("Event", "" + eventGuest.getEventId());
+                            String date = eventGuest.getEndDate();
 
+                            if (date != null) {
+                                try {
+                                    Date eventEndDate = dateFormat.parse(date);
+
+                                    if (today.after(eventEndDate)) {
+
+                                        mEventList.add(eventGuest);
+                                        mEventRecyclerAdapter.notifyDataSetChanged();
+                                    }
+                                } catch (ParseException e2) {
+                                    e2.printStackTrace();
+                                }
+
+                            }
+                        }
 
                     }
                 }
