@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,7 +72,8 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
 
         String startDate = mEventList.get(position).getStartDate();
         String endDate = mEventList.get(position).getEndDate();
-        holder.setEventDate(startDate,endDate);
+
+        holder.setEventDate(holder.dateConverter(startDate),holder.dateConverter(endDate));
 
         String startTime = mEventList.get(position).getStartTime();
         String endTime = mEventList.get(position).getEndTime();
@@ -80,31 +82,31 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         //otvaramo infoEvent
         holder.onInfoBtn(eventId);
         holder.onCard(eventId);
-
-//        holder.onDeletePastEventsBtn(eventId);
-
+//
         holder.delete_btn.setOnClickListener(v -> {
+            Log.i("REMOVE", "Event Id:" + eventId);
 //            String currentUserId = mAuth.getCurrentUser().getUid();
             mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     if(task.getResult().exists()){
                         String authorId = task.getResult().getString("authorId");
-
+                        Log.i("REMOVE", "Author id" + authorId);
                         if(authorId != null) {
                             if (!authorId.equals(currentUserId)) {
-                                mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        mEventList.remove(position);
-                                        notifyDataSetChanged();
-                                    }
+                                Log.i("REMOVE", "Invited");
+                                mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete().addOnSuccessListener(aVoid -> {
+                                    mEventList.remove(position);
+                                    notifyDataSetChanged();
+                                    Log.i("REMOVE", "Invited Deleted");
+                                    Toast.makeText(mContext, "Event was removed.", Toast.LENGTH_SHORT).show();
                                 });
-                                mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        mEventList.remove(position);
-                                        notifyDataSetChanged();
-                                    }
+                            }else {
+                                Log.i("REMOVE", "Created");
+                                mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(aVoid -> {
+                                    mEventList.remove(position);
+                                    notifyDataSetChanged();
+                                    Log.i("REMOVE", "Created Deleted");
+                                    Toast.makeText(mContext, "Event was removed.", Toast.LENGTH_SHORT).show();
                                 });
                             }
                         }
@@ -269,7 +271,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         public void setEventTime(String startTime, String endTime){
             start_time = mView.findViewById(R.id.event_list_start_time);
             end_time = mView.findViewById(R.id.event_list_end_time);
-
             start_time.setText(startTime);
             end_time.setText(endTime);
 
@@ -283,7 +284,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                 mContext.startActivity(infoIntent);
             });
         }
-
         public void onCard(final String eventId) {
             event_card.setOnClickListener(v -> {
                 Intent infoIntent = new Intent(mContext, EventInfoActivity.class);
@@ -314,7 +314,6 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
                         maybe_btn.setTextColor(ContextCompat.getColor(mContext,R.color.colorPrimaryDark));
                     }));
         }
-
         public void onNoBtn(final String eventId, final String demoId, final String guestName, final String guestNumber, String userId){
             no_btn.setOnClickListener(v -> mFirestore.collection("Events/" + eventId + "/Guests").document(demoId)
                     .get().addOnCompleteListener(task -> {
@@ -377,6 +376,56 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
             maybe_btn.setVisibility(mView.INVISIBLE);
             invite_btn.setVisibility(mView.INVISIBLE);
             delete_btn.setVisibility(mView.VISIBLE);
+        }
+
+        //yyyy-MM-dd
+        //0123456789
+        public String dateConverter(String date){
+            String year = date.substring(0,4);
+            String month = date.substring(5,7);
+            String day = date.substring(8);
+
+            switch (month){
+                case "01":
+                    month = "Jan";
+                    break;
+                case "02":
+                    month = "Feb";
+                    break;
+                case "03":
+                    month = "Mart";
+                    break;
+                case "04":
+                    month = "Apr";
+                    break;
+                case "05":
+                    month = "May";
+                    break;
+                case "06":
+                    month = "June";
+                    break;
+                case "07":
+                    month = "July";
+                    break;
+                case "08":
+                    month = "August";
+                    break;
+                case "09":
+                    month = "Sep";
+                    break;
+                case "10":
+                    month = "Oct";
+                    break;
+                case "11":
+                    month = "Nov";
+                    break;
+                case "12":
+                    month = "Dec";
+                    break;
+
+            }
+            Log.i("EVENT", "Date" + month);
+            return day + ". " + month + " " + year + ".";
         }
     }
 

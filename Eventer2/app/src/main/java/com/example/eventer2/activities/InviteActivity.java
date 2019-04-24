@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
@@ -29,7 +30,9 @@ import com.example.eventer2.R;
 import com.example.eventer2.adapters.InvitedBaseAdapter;
 import com.example.eventer2.dialogs.DialogSms;
 import com.example.eventer2.adapters.InvitedFriendsAdapter;
+import com.example.eventer2.email.SendEmailTask;
 import com.example.eventer2.models.InvitedFriend;
+import com.example.eventer2.models.NumberCatcher;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -38,6 +41,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
+
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 public class InviteActivity extends AppCompatActivity implements SearchView.OnQueryTextListener, DialogSms.DialogListener {
 
@@ -111,6 +129,8 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                             String number = friends.getNumber();
                             String userId = friends.getUserId();
                             String id = friends.getDemoId();
+                            String email = friends.getEmail();
+                            String notification = friends.getEmailNotification();
 
                             if (number != null) {
                                 if (number.equals(finalPhone)) {
@@ -120,7 +140,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                                             break;
                                         }
                                     }
-                                    list.add(new InvitedFriend(name, finalPhone, eventId, id, userId));
+                                    list.add(new InvitedFriend(name, finalPhone, eventId, id, userId, email, notification));
                                 }
                             }
                         }
@@ -189,6 +209,9 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                 String number = mData.friendsList.get(i).getNumber();
                 String demo = mData.friendsList.get(i).getDemoId();
                 String id = mData.friendsList.get(i).getUserId();
+                String email = mData.friendsList.get(i).getEmail();
+                String emailNotification = mData.friendsList.get(i).getEmailNotification();
+
 
                 addInUsers(name, number, demo, id);
                 addInEvents(id,demo);
@@ -327,15 +350,20 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         return phone;
     }
 
-    public void onSendSms(String eventName, String location, String startDate, String startTime){
+    public void onSendSms(String eventName, String location, String startDate, String startTime, String num){
         SmsManager sm = SmsManager.getDefault();
+        Log.i("INVITE", "" + num);
         String number = "+381645871290";
-        String dateTime = startDate + " " + startTime;
-//        String number = "+381645741511";
-        String msg = eventName + "\n Location: " + location;
+//        String number = num;
+        String dateTime = dateConverter(startDate) + " u " + startTime;
+        String msg;
+
+        msg = "Pozvani ste na dogadjaj " + eventName + " koji pocinje " + dateTime  + ". " +
+                "Detalje dogadjaja mozete pogledati putem aplikacije Eventer.";
         sm.sendTextMessage(number,null, msg,null,null);
-        Log.d("PORUKA", "SMS size:" + msg.length());
-        Log.d("PORUKA", "Number: " + number);
+        Log.i("INVITE","Poruka poslata");
+
+//        sm.sendTextMessage(number,null, msg,null,null);
     }
 
     private void addInUsers(String name, String number, String demo, String id){
@@ -350,6 +378,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
         mFirestore.collection("Events/" + eventId + "/Guests").document(demo).set(invitedMap);
         Toast.makeText(this, "Friends was invited!", Toast.LENGTH_SHORT).show();
+        Log.i("INVITE","Push notifikacija poslata");
     }
 
     private void addInEvents(String id, String demo){
@@ -389,7 +418,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         });
     }
 
-    private void addInEventsSMS(String name, String id, String demo){
+    private void addInEventsSMS(String number, String id, String demo){
         mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
                 if(task.getResult().exists()){
@@ -416,7 +445,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                     eventMap.put("endTime", endTime);
                     eventMap.put("authorId", author);
 
-                    onSendSms(eventName,location,startDate,startTime);
+                    onSendSms(eventName,location,startDate,startTime, number);
                     if(id != null){
                         mFirestore.collection("Users/" + id + "/InvitedEvents").document(eventId).set(eventMap);
                     }else {
@@ -434,6 +463,8 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                 .setTitle("SMS Service");
         builder.setPositiveButton("Yes", (dialog, id) -> {
             int listSize = mData.friendsList.size();
+            NumberCatcher num = new NumberCatcher();
+
             for(int i = 0; i < listSize; i++){
                 String name = mData.friendsList.get(i).getName();
                 String number = mData.friendsList.get(i).getNumber();
@@ -441,7 +472,8 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
                 String userId = mData.friendsList.get(i).getUserId();
 
                 addInUsers(name, number, demo, userId);
-                addInEventsSMS(name, userId,demo);
+                addInEventsSMS(number, userId,demo);
+
 
             }
             mData.friendsList.clear();
@@ -452,6 +484,54 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         });
 
         return builder.create();
+    }
+
+    public String dateConverter(String date){
+        String year = date.substring(0,4);
+        String month = date.substring(5,7);
+        String day = date.substring(8);
+
+        switch (month){
+            case "01":
+                month = "Januar";
+                break;
+            case "02":
+                month = "Februar";
+                break;
+            case "03":
+                month = "Mart";
+                break;
+            case "04":
+                month = "April";
+                break;
+            case "05":
+                month = "Maj";
+                break;
+            case "06":
+                month = "Jun";
+                break;
+            case "07":
+                month = "Jul";
+                break;
+            case "08":
+                month = "Avgust";
+                break;
+            case "09":
+                month = "Septembar";
+                break;
+            case "10":
+                month = "Oktobar";
+                break;
+            case "11":
+                month = "Novembar";
+                break;
+            case "12":
+                month = "Decembar";
+                break;
+
+        }
+        Log.i("EVENT", "Date" + month);
+        return day + ". " + month + " " + year + ".";
     }
 
     @Override

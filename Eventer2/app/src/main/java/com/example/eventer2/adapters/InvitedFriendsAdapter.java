@@ -40,8 +40,6 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
     private List<InvitedFriend> mInvitedList;
     private Context mContext;
 
-    Boolean clicked = false;
-
     public FirebaseFirestore mFirestore;
     public FirebaseAuth mAuth;
 
@@ -95,8 +93,6 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
             phone = "+381" + phone;
         }
         String finalPhone = phone;
-
-
 
         //prikazivanje ikonice
         mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {

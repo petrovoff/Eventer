@@ -154,6 +154,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                         final StorageReference image_path = mStorageReference.child("profile_images").child(mUser_id + ".jpg");
                         image_path.putFile(mUserImageUri).addOnSuccessListener(taskSnapshot ->
                                 image_path.getDownloadUrl().addOnSuccessListener(uri -> {
+
                                     storeFirestore(uri, user_name, mUserPhone, user_email); //skidamo url iz baze i cuvamo u uri
                                 })).addOnFailureListener(e -> {
                                     Toast.makeText(ProfileSetupActivity.this, "The image is not Uploaded", Toast.LENGTH_LONG).show();
@@ -246,6 +247,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
             }
 
             String token_id = task1.getResult().getToken();
+            mData.setUserImageUri(download_uri.toString());
             Log.i("Auth", "Token ID: " + token_id);
 
             Map<String, String> userMap = new HashMap<>();
@@ -263,6 +265,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
             contactMap.put("image", download_uri.toString());
             contactMap.put("demoId", phone_number + "blabla");
             contactMap.put("userId", mUser_id);
+            contactMap.put("email", email);
             contactMap.put("tokenId", token_id);
 
 
@@ -281,5 +284,13 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
         mProgressBar.setVisibility(View.INVISIBLE);
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent mainIntent = new Intent(ProfileSetupActivity.this, MainActivity.class);
+        startActivity(mainIntent);
+        finish();
     }
 }

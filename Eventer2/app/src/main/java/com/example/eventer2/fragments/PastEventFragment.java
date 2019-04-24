@@ -122,10 +122,13 @@ public class PastEventFragment extends Fragment {
 
                             Log.i("Event", "" + eventGuest.getEventId());
                             String date = eventGuest.getEndDate();
+                            String time = eventGuest.getEndTime();
+
+                            String dateTime = date + " " + time;
 
                             if (date != null) {
                                 try {
-                                    Date eventEndDate = dateFormat.parse(date);
+                                    Date eventEndDate = dateFormat.parse(dateTime);
 
                                     if (today.after(eventEndDate)) {
 

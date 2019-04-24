@@ -88,7 +88,7 @@ public class EventInfoActivity extends AppCompatActivity {
     private int mState;
 
     //calendar
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
     private final Date today = new Date();
     private long calId;
     private String email;
@@ -143,13 +143,11 @@ public class EventInfoActivity extends AppCompatActivity {
                     String image = task.getResult().getString("image_url");
                     mAuthorId = task.getResult().getString("authorId");
 
-
-
                     mName.setText(name);
                     mTheme.setText(theme);
                     mLocation.setText(location);
-                    mStartDate.setText(startDate);
-                    mEndDate.setText(endDate);
+                    mStartDate.setText(dateConverter(startDate));
+                    mEndDate.setText(dateConverter(endDate));
                     mStartTime.setText(startTime);
                     mEndTime.setText(endTime);
 
@@ -165,8 +163,10 @@ public class EventInfoActivity extends AppCompatActivity {
                     mProgressBar.setVisibility(View.INVISIBLE);
 
                     if(mAuthorId.equals(currentUserId)) {
+
+                        String dateTime = endDate + " " + endTime;
                         try {
-                            Date eventEndDate = format.parse(endDate);
+                            Date eventEndDate = format.parse(dateTime);
                             if (today.after(eventEndDate)) {
                                 mInviteBtn.setVisibility(View.INVISIBLE);
                                 mExportBtn.setVisibility(View.INVISIBLE);
@@ -315,7 +315,6 @@ public class EventInfoActivity extends AppCompatActivity {
         mFirestore = FirebaseFirestore.getInstance();
 
     }
-
     private void onLocation(String location){
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
@@ -327,8 +326,6 @@ public class EventInfoActivity extends AppCompatActivity {
             }
 
     }
-
-
     private List<Guest> onLoadGuests(){
         guest_recycler_view.setVisibility(View.VISIBLE);
         guest_author_recycler.setVisibility(View.INVISIBLE);
@@ -336,7 +333,6 @@ public class EventInfoActivity extends AppCompatActivity {
 
         return guest_list;
     }
-
 
     //google maps service
     public boolean isServiceOK(){
@@ -399,6 +395,56 @@ public class EventInfoActivity extends AppCompatActivity {
         return demoList;
     }
 
+    //date convertor
+    public String dateConverter(String date){
+        String year = date.substring(0,4);
+        String month = date.substring(5,7);
+        String day = date.substring(8);
+
+        switch (month){
+            case "01":
+                month = "Jan";
+                break;
+            case "02":
+                month = "Feb";
+                break;
+            case "03":
+                month = "Mart";
+                break;
+            case "04":
+                month = "Apr";
+                break;
+            case "05":
+                month = "May";
+                break;
+            case "06":
+                month = "June";
+                break;
+            case "07":
+                month = "July";
+                break;
+            case "08":
+                month = "August";
+                break;
+            case "09":
+                month = "Sep";
+                break;
+            case "10":
+                month = "Oct";
+                break;
+            case "11":
+                month = "Nov";
+                break;
+            case "12":
+                month = "Dec";
+                break;
+
+        }
+        Log.i("EVENT", "Date" + month);
+        return day + ". " + month + " " + year + ".";
+    }
+
+    //calendar service
     private AlertDialog calendarDialog(){
         PackageManager pmv = getPackageManager();
 
@@ -435,7 +481,6 @@ public class EventInfoActivity extends AppCompatActivity {
 
         return builder.create();
     }
-
     private AlertDialog playStoreDialog(){
         //play store dialog
         AlertDialog.Builder appStoreDialog = new AlertDialog.Builder(this);
@@ -452,7 +497,6 @@ public class EventInfoActivity extends AppCompatActivity {
 
         return appStoreDialog.create();
     }
-
     private boolean googleCalendarExist(){
         PackageManager pmv = getPackageManager();
         List<ApplicationInfo> packages = pmv.getInstalledApplications(PackageManager.GET_META_DATA);
@@ -470,7 +514,6 @@ public class EventInfoActivity extends AppCompatActivity {
             return false;
         }
     }
-
     private boolean userEmailExist(){
 
         if(email.isEmpty()){
@@ -479,7 +522,6 @@ public class EventInfoActivity extends AppCompatActivity {
             return true;
         }
     }
-
     private void exportEventToGoogleCalendar(){
 
         String[] projection =
@@ -522,7 +564,6 @@ public class EventInfoActivity extends AppCompatActivity {
             } while (calCursor.moveToNext());
         }
     }
-
     private void exportEventToCalendar(){
 
         String[] projection =
@@ -568,14 +609,12 @@ public class EventInfoActivity extends AppCompatActivity {
             } while (calCursor.moveToNext());
         }
     }
-
     private void calendarIntent(String packageInfo){
         Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageInfo);
         if (launchIntent != null) {
             startActivity(launchIntent);//null pointer check in case package name was not found
         }
     }
-
     private void sendToPlayStore(){
         final String appPackageName = "com.google.android.calendar"; // getPackageName() from Context or Activity object
         try {
@@ -585,7 +624,6 @@ public class EventInfoActivity extends AppCompatActivity {
         }
 
     }
-
     private void calendarPermission(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)

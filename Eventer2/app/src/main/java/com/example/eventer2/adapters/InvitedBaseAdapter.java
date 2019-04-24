@@ -89,7 +89,7 @@ public class InvitedBaseAdapter extends RecyclerView.Adapter<InvitedBaseAdapter.
         }
         String finalPhone = phone;
         //prikazivanje ikonice
-        mFirestore.collection("Contacts").get().addOnSuccessListener(queryDocumentSnapshots -> {
+        mFirestore.collection("Users").get().addOnSuccessListener(queryDocumentSnapshots -> {
             if(queryDocumentSnapshots != null){
                 for(DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()){
                     if(doc.getType() == DocumentChange.Type.ADDED){

@@ -3,6 +3,7 @@ package com.example.eventer2.activities;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatEditText;
+import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.Context;
@@ -40,6 +41,14 @@ import java.util.concurrent.TimeUnit;
 
 public class AuthActivity extends AppCompatActivity {
 
+    private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
+    private static final String COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
+    private static final String READ_CONTACTS = Manifest.permission.READ_CONTACTS;
+    private static final String READ_PHONE_STATE = Manifest.permission.READ_PHONE_STATE;
+    private static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+    private static final String READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE;
+    private static final String ACCESS_NETWORK_STATE = Manifest.permission.ACCESS_NETWORK_STATE;
+
     private ApplicationData mData;
 
     private CountryCodePicker cpp;
@@ -50,6 +59,7 @@ public class AuthActivity extends AppCompatActivity {
 
     private String mVerificationId;
     private String phoneNumber;
+    private String[] mPerm;
 
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     private PhoneAuthProvider.ForceResendingToken mResendToken;
@@ -63,6 +73,20 @@ public class AuthActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth);
         init();
+
+        mPerm = new String[]{
+                READ_CONTACTS,
+                READ_PHONE_STATE,
+                WRITE_EXTERNAL_STORAGE,
+                READ_EXTERNAL_STORAGE,
+                FINE_LOCATION,
+                COARSE_LOCATION
+
+        };
+
+        if(!hasPermissions(this, mPerm)){
+            ActivityCompat.requestPermissions(this, mPerm, 1);
+        }
 
         if(mData.getUserPhone() != null){
             mPhoneNumberInput.setText(mData.getUserPhone());
@@ -170,6 +194,42 @@ public class AuthActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
+
+    }
+
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1) {
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+
+                if (permission.equals(READ_CONTACTS)) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                        finish();
+                    }
+                }else if (permission.equals(READ_PHONE_STATE)) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                        finish();
+                    }
+                }
+
+
+            }
+        }
 
     }
 

@@ -24,10 +24,11 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/account_image"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="30dp"
             android:src="@drawable/icon_profile"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/account_progress" />
 
@@ -35,10 +36,9 @@
             android:id="@+id/account_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="50dp"
             android:layout_marginEnd="32dp"
-            android:text="Name"
             android:textColor="@color/colorAccent"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -51,7 +51,7 @@
             android:id="@+id/account_phone"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
+            android:layout_marginStart="50dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="32dp"
             android:text="Phone Number"
@@ -66,7 +66,7 @@
             android:id="@+id/account_email"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
+            android:layout_marginStart="50dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="32dp"
             android:text="Example email"
@@ -78,22 +78,70 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/account_phone" />
 
-        <Button
-            android:id="@+id/account_edit"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/account_email2"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="64dp"
-            android:layout_marginTop="100dp"
-            android:layout_marginEnd="64dp"
-            android:background="@drawable/button_background"
-            android:text="Edit Account"
-            android:textAllCaps="false"
-            android:textColor="@color/colorPrimary"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="20dp"
+            android:text="Email notifications!"
+            android:textColor="@color/colorPrimaryDark"
             android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:textStyle="italic"
+            android:visibility="invisible"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/account_phone" />
+            app:layout_constraintTop_toBottomOf="@+id/account_email" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/account_person_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/account_name"
+            app:layout_constraintEnd_toStartOf="@+id/account_name"
+            app:layout_constraintTop_toTopOf="@+id/account_name" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/account_phone_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/account_phone"
+            app:layout_constraintEnd_toStartOf="@+id/account_phone"
+            app:layout_constraintTop_toTopOf="@+id/account_phone" />
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/account_mail_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/account_email"
+            app:layout_constraintEnd_toStartOf="@+id/account_email"
+            app:layout_constraintTop_toTopOf="@+id/account_email" />
+
+        <ImageView
+            android:id="@+id/account_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="30dp"
+            android:src="@drawable/account_edit_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/account_progress" />
+
+        <ImageView
+            android:id="@+id/account_email_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="30dp"
+            android:src="@drawable/account_disabled_icon"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/account_email2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/account_email2" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

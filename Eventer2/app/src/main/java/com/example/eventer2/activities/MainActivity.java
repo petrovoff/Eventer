@@ -39,13 +39,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
-    private static final String COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
-    private static final String READ_CONTACTS = Manifest.permission.READ_CONTACTS;
-    private static final String READ_PHONE_STATE = Manifest.permission.READ_PHONE_STATE;
-    private static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-    private static final String READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE;
-    private static final String ACCESS_NETWORK_STATE = Manifest.permission.ACCESS_NETWORK_STATE;
+
 
     private Toolbar mainToolbar;
     private FloatingActionButton mNewEventButton;
@@ -62,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
     private String userName;
     private String userPhone;
     private String userEmail;
-    private String[] mPerm;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
@@ -73,22 +66,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
-        mPerm = new String[]{
-                READ_CONTACTS,
-                READ_PHONE_STATE,
-                WRITE_EXTERNAL_STORAGE,
-                READ_EXTERNAL_STORAGE,
-                FINE_LOCATION,
-                COARSE_LOCATION
 
-        };
-
-        if(!hasPermissions(this, mPerm)){
-            ActivityCompat.requestPermissions(this, mPerm, 1);
-        }
-
-        if(mAuth.getCurrentUser() != null) {
-        }
 
     }
 
@@ -244,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
             mFirestore.collection("Contacts").document(currentUserId).update(tokenMapDelete);
 
             mData.setUserName(null);
-            mData.setUserEmail(null);
+//            mData.setUserEmail(null);
             mAuth.signOut();
 
 
@@ -292,43 +270,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         return dialogBuilder.create();
-    }
-
-
-    public static boolean hasPermissions(Context context, String... permissions) {
-        if (context != null && permissions != null) {
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == 1) {
-            for (int i = 0; i < permissions.length; i++) {
-                String permission = permissions[i];
-                int grantResult = grantResults[i];
-
-                if (permission.equals(READ_CONTACTS)) {
-                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                        finish();
-                    }
-                }else if (permission.equals(READ_PHONE_STATE)) {
-                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                        finish();
-                    }
-                }
-
-
-            }
-        }
-
     }
 
 }

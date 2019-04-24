@@ -17,6 +17,7 @@ public class ApplicationData extends Application {
     private String userName;
     private String userPhone;
     private String userEmail;
+    private boolean enableEmail;
 
     //invite activity
     public ArrayList<InvitedFriend> friendsList = new ArrayList<>();
@@ -86,5 +87,13 @@ public class ApplicationData extends Application {
 
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
+    }
+
+    public boolean isEnableEmail() {
+        return enableEmail;
+    }
+
+    public void setEnableEmail(boolean enableEmail) {
+        this.enableEmail = enableEmail;
     }
 }

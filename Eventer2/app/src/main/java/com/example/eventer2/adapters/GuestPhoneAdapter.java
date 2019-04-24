@@ -1,6 +1,7 @@
 package com.example.eventer2.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +36,7 @@ public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private FirebaseFirestore mFirestore;
     private FirebaseAuth mAuth;
     final Date today = new Date();
-    final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+    final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 
     public GuestPhoneAdapter(List<Guest> guestList, CustomItemListener listener) {
         this.mGuestList = guestList;
@@ -111,23 +112,36 @@ public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 vh.guestArrival.setVisibility(View.VISIBLE);
             }
             if (guestId == null) {
+                Log.i("GUESTS", "ID:" + guestId);
                 mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(eventTask -> {
                     if (eventTask.isSuccessful()) {
                         if (eventTask.getResult().exists()) {
                             String authorId = eventTask.getResult().getString("authorId");
                             String endDate = eventTask.getResult().getString("endDate");
+                            String endTime = eventTask.getResult().getString("endTime");
 
-                            Date eventEndDate = null;
+                            String dateTime = endDate + " " + endTime;
+
                             try {
-                                eventEndDate = format.parse(endDate);
-                                if (today.before(eventEndDate) && authorId.equals(currentUserId)) {
-                                    vh.authorArrivalCard.setOnClickListener(v -> {
-                                        vh.authorCard.setVisibility(View.VISIBLE);
-                                        vh.authorArrivalCard.setVisibility(View.INVISIBLE);
-                                    });
+                                Date eventEndDate = format.parse(dateTime);
+                                if(authorId != null){
+                                    if(authorId.equals(currentUserId)){
+                                        Log.i("GUESTS", "Author: " + authorId);
+                                        if (today.before(eventEndDate)) {
+                                            Log.i("GUESTS", "Dan pre");
+                                            vh.authorArrivalCard.setOnClickListener(v -> {
+                                                Log.i("GUESTS", "Clicked");
+                                                vh.authorCard.setVisibility(View.VISIBLE);
+                                                vh.authorArrivalCard.setVisibility(View.INVISIBLE);
+                                            });
+                                        }else {
+                                            Log.i("GUESTS", "TIME:" + today);
+                                        }
+                                    }
+
                                 }
                             } catch (ParseException e) {
-                                e.printStackTrace();
+                                Log.i("GUESTS", "Error" + e);
                             }
                         }
                     }

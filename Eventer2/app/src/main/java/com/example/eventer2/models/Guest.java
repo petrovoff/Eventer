@@ -7,6 +7,7 @@ public class Guest {
     private String userId;
     private String demoId;
     private String eventId;
+    private String email;
 
     public Guest() {
     }
@@ -72,5 +73,13 @@ public class Guest {
 
     public void setEventId(String eventId) {
         this.eventId = eventId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

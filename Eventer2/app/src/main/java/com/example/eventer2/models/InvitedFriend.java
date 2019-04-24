@@ -9,6 +9,8 @@ public class InvitedFriend {
     private String userId;
     private String demoId;
     private boolean check;
+    private String email;
+    private String emailNotification;
 
 
     public InvitedFriend() {
@@ -24,6 +26,16 @@ public class InvitedFriend {
         this.number = number;
         this.demoId = id;
         this.eventId = eventId;
+    }
+
+    public InvitedFriend (String name, String number, String eventId, String id, String userId, String email, String notification){
+        this.name = name;
+        this.number = number;
+        this.eventId = eventId;
+        this.demoId = id;
+        this.userId = userId;
+        this.email = email;
+        this.emailNotification = notification;
     }
 
     public InvitedFriend(String name, String number, String eventId, String demoId, String userId) {
@@ -85,5 +97,21 @@ public class InvitedFriend {
 
     public void setCheck(boolean check) {
         this.check = check;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getEmailNotification() {
+        return emailNotification;
+    }
+
+    public void setEmailNotification(String emailNotification) {
+        this.emailNotification = emailNotification;
     }
 }
