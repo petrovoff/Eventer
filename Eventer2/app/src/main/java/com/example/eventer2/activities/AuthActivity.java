@@ -96,28 +96,38 @@ public class AuthActivity extends AppCompatActivity {
         mVerificationBtn.setOnClickListener(v -> {
 
             cpp.registerPhoneNumberTextView(mPhoneNumberInput);
-
+            String number = cpp.getNumber();
 
             mNumberProgress.setVisibility(View.VISIBLE);
             mPhoneNumberInput.setEnabled(false);
 
-
-            phoneNumber = cpp.getNumber();
-            //number auth
-            PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                    phoneNumber,
-                    60,
-                    TimeUnit.SECONDS,
-                    AuthActivity.this,
-                    mCallbacks
-            );
-            Handler handler = new Handler();
-            handler.postDelayed(() -> {
+            if(number != null){
+                phoneNumber = cpp.getNumber();
+                Log.i("AuthActivity", "Number:" + phoneNumber);
+                //number auth
+                PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                        phoneNumber,
+                        60,
+                        TimeUnit.SECONDS,
+                        AuthActivity.this,
+                        mCallbacks
+                );
+                Handler handler = new Handler();
+                handler.postDelayed(() -> {
+                    mErrorTextView.setVisibility(View.VISIBLE);
+                    mPhoneNumberInput.setText("");
+                    mPhoneNumberInput.setEnabled(true);
+                    mVerificationBtn.setEnabled(true);
+                }, 10000);
+            }else {
+                Log.i("AuthActivity", "Number:" + phoneNumber);
+                Toast.makeText(this, "You must set your phone number!", Toast.LENGTH_SHORT).show();
                 mErrorTextView.setVisibility(View.VISIBLE);
                 mPhoneNumberInput.setText("");
                 mPhoneNumberInput.setEnabled(true);
                 mVerificationBtn.setEnabled(true);
-            }, 10000);
+                mNumberProgress.setVisibility(View.INVISIBLE);
+            }
         });
 
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
@@ -134,6 +144,7 @@ public class AuthActivity extends AppCompatActivity {
                 mPhoneNumberInput.setEnabled(true);
                 mVerificationBtn.setEnabled(true);
                 mNumberProgress.setVisibility(View.INVISIBLE);
+                Log.i("AuthActivity", "Error is: " + e.getMessage());
             }
 
             public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
