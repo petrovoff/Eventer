@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private String userName;
     private String userPhone;
     private String userEmail;
+    private int mAppState;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
@@ -67,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         init();
 
-
     }
 
     @Override
@@ -77,6 +78,13 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null){
             sendToLogin();
+        }else {
+            SharedPreferences prefs = getSharedPreferences("AppState", 0);
+            int state = prefs.getInt("state", 0);
+
+            if(state == 0){
+                sendToProfile();
+            }
         }
     }
 
@@ -85,9 +93,10 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null){
 
+        if (currentUser != null){
             //fragments set
+
             onStartFragment(mEventFragment);
 
             LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -157,10 +166,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-            Log.i("Data", "Resume Email: " + mData.getUserEmail());
-            Log.i("Data", "Resume Phone: " + mData.getUserPhone());
-            Log.i("Data", "Resume Name: " + mData.getUserName());
-
         }
     }
 
@@ -179,10 +184,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
 
             case R.id.action_settings_btn:
-                Intent settingsIntent = new Intent(MainActivity.this, ProfileSetupActivity.class);
-                settingsIntent.putExtra("info", "0");
-                startActivity(settingsIntent);
-                finish();
+                sendToProfile();
                 return true;
 
             default: return false;
@@ -233,6 +235,13 @@ public class MainActivity extends AppCompatActivity {
     private void sendToLogin(){
         Intent loginIntent = new Intent(MainActivity.this, AuthActivity.class);
         startActivity(loginIntent);
+        finish();
+    }
+
+    private void sendToProfile(){
+        Intent settingsIntent = new Intent(MainActivity.this, ProfileSetupActivity.class);
+        settingsIntent.putExtra("info", "0");
+        startActivity(settingsIntent);
         finish();
     }
 

@@ -90,8 +90,12 @@ public class AccountFragment extends Fragment {
             mFirestore = FirebaseFirestore.getInstance();
             mAccountProgress.setVisibility(View.VISIBLE);
 
+            SharedPreferences numberPrefs = getActivity().getSharedPreferences("UserNumber", 0);
+            String number = numberPrefs.getString("phoneNumber", null);
+
+
             userName = mData.getUserName();
-            userPhone = mData.getUserPhone();
+            userPhone = number;
             imageUri = mData.getUserImageUri();
             userEmail = mData.getUserEmail();
 

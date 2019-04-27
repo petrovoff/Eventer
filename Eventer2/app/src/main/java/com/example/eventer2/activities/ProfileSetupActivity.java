@@ -8,6 +8,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -74,39 +75,48 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
         mInfo = getIntent().getStringExtra("info");
 
-        username = mData.getUserName();
-        if(username != null){
-            mUsernameHolder.setText(username);
-//            mUsernameHolder.setEnabled(false);
-            if(mInfo.equals("1")) {
-                mMessage.setVisibility(View.VISIBLE);
-            }
-        }
-
-
-        mUserPhone = mData.getUserPhone();
-        if(mUserPhone != null) {
-
-            mNumber.setText(mUserPhone);
-            mNumber.setEnabled(false);
-        }
-
-
-        if(mInfo.equals("0")){
-            mProgressDot1.setVisibility(View.INVISIBLE);
-            mProgressDot2.setVisibility(View.INVISIBLE);
-        }
-
-        mUserEmail = mData.getUserEmail();
-        if(mUserEmail != null){
-            mEmail.setText(mUserEmail);
-        }
-
-        mUser_id = mAuth.getCurrentUser().getUid();
-        mProgressBar.setVisibility(View.VISIBLE);
-        mSaveUserData.setEnabled(false);
-
         if(mAuth.getCurrentUser() != null) {
+
+            username = mData.getUserName();
+            if(username != null){
+                mUsernameHolder.setText(username);
+//            mUsernameHolder.setEnabled(false);
+                if(mInfo.equals("1")) {
+                    mMessage.setVisibility(View.VISIBLE);
+                }
+            }
+
+            SharedPreferences numberPrefs = getSharedPreferences("UserNumber", 0);
+            String number = numberPrefs.getString("phoneNumber", null);
+
+            if(number != null){
+                mUserPhone = number;
+                mNumber.setText(number);
+                mNumber.setEnabled(false);
+                mData.setUserPhone(number);
+            }
+
+//            mUserPhone = mData.getUserPhone();
+//            if(mUserPhone != null) {
+//
+//                mNumber.setText(mUserPhone);
+//                mNumber.setEnabled(false);
+//            }
+
+            if(mInfo.equals("0")){
+                mProgressDot1.setVisibility(View.INVISIBLE);
+                mProgressDot2.setVisibility(View.INVISIBLE);
+            }
+
+            mUserEmail = mData.getUserEmail();
+            if(mUserEmail != null){
+                mEmail.setText(mUserEmail);
+            }
+
+            mUser_id = mAuth.getCurrentUser().getUid();
+            mProgressBar.setVisibility(View.VISIBLE);
+            mSaveUserData.setEnabled(false);
+
             mFirestore.collection("Users").document(mUser_id).get().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     //proverava da li je korisnik postavio sliku i korisnicko ime
@@ -145,25 +155,37 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 final String user_name = mUsernameHolder.getText().toString();
                 String user_email = mEmail.getText().toString();
 
-                if (!TextUtils.isEmpty(user_name) && mUserImageUri != null) {
-                    mProgressBar.setVisibility(View.VISIBLE);
+                if (!TextUtils.isEmpty(user_name)) {
+                    if(mUserImageUri != null){
+                        mProgressBar.setVisibility(View.VISIBLE);
 
-                    if (isChanged) { //ako je slika promenjena
-                        mUser_id = mAuth.getCurrentUser().getUid();
+                        if (isChanged) { //ako je slika promenjena
+                            mUser_id = mAuth.getCurrentUser().getUid();
 
-                        final StorageReference image_path = mStorageReference.child("profile_images").child(mUser_id + ".jpg");
-                        image_path.putFile(mUserImageUri).addOnSuccessListener(taskSnapshot ->
-                                image_path.getDownloadUrl().addOnSuccessListener(uri -> {
+                            final StorageReference image_path = mStorageReference.child("profile_images").child(mUser_id + ".jpg");
+                            image_path.putFile(mUserImageUri).addOnSuccessListener(taskSnapshot ->
+                                    image_path.getDownloadUrl().addOnSuccessListener(uri -> {
 
-                                    storeFirestore(uri, user_name, mUserPhone, user_email); //skidamo url iz baze i cuvamo u uri
-                                })).addOnFailureListener(e -> {
-                                    Toast.makeText(ProfileSetupActivity.this, "The image is not Uploaded", Toast.LENGTH_LONG).show();
-                                    mProgressBar.setVisibility(View.INVISIBLE);
-                                });
-                    } else {
-                        storeFirestore(null, user_name, mUserPhone, user_email);
+                                        storeFirestore(uri, user_name, mUserPhone, user_email); //skidamo url iz baze i cuvamo u uri
+                                    })).addOnFailureListener(e -> {
+                                Toast.makeText(ProfileSetupActivity.this, "The image is not Uploaded", Toast.LENGTH_LONG).show();
+                                mProgressBar.setVisibility(View.INVISIBLE);
+                            });
 
+                            SharedPreferences.Editor stateEditor = getSharedPreferences("AppState", 0).edit();
+                            stateEditor.putInt("state", 1);
+                            stateEditor.apply();
+
+                        } else {
+                            storeFirestore(null, user_name, mUserPhone, user_email);
+
+                        }
+                    }else {
+                        Toast.makeText(this, "You must set Profile picture!", Toast.LENGTH_SHORT).show();
                     }
+
+                }else {
+                    Toast.makeText(this, "You must set Username and Profile picture!", Toast.LENGTH_SHORT).show();
                 }
                 mData.setUserEmail(null);
             });
@@ -183,6 +205,19 @@ public class ProfileSetupActivity extends AppCompatActivity {
                     BringImagePicker();
                 }
             });
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        SharedPreferences numberPrefs = getSharedPreferences("UserNumber", 0);
+        String number = numberPrefs.getString("phoneNumber", null);
+
+        if(number != null){
+            mNumber.setText(number);
+            mNumber.setEnabled(false);
         }
     }
 

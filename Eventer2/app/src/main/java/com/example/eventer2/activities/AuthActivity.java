@@ -9,6 +9,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -132,8 +133,6 @@ public class AuthActivity extends AppCompatActivity {
                 mPhoneNumberInput.setText("");
                 mPhoneNumberInput.setEnabled(true);
                 mVerificationBtn.setEnabled(true);
-
-                Toast.makeText(AuthActivity.this, "Error is " + e , Toast.LENGTH_LONG).show();
                 mNumberProgress.setVisibility(View.INVISIBLE);
             }
 
@@ -160,6 +159,10 @@ public class AuthActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 // Sign in success, update UI with the signed-in user's information
                 FirebaseUser user = task.getResult().getUser();
+
+                SharedPreferences.Editor editor = getSharedPreferences("UserNumber", 0).edit();
+                editor.putString("phoneNumber", phoneNumber);
+                editor.apply();
 
                 mData.setUserPhone(phoneNumber);
 
