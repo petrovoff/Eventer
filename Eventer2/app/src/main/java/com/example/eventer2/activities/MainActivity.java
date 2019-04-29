@@ -75,17 +75,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null){
-            sendToLogin();
-        }else {
-            SharedPreferences prefs = getSharedPreferences("AppState", 0);
-            int state = prefs.getInt("state", 0);
-
-            if(state == 0){
-                sendToProfile();
-            }
-        }
     }
 
     @Override
@@ -93,6 +82,18 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null){
+            sendToLogin();
+        }else {
+            SharedPreferences prefs = getSharedPreferences("AppState", 0);
+            int state = prefs.getInt("state", 0);
+            Log.i("APPSTATE", "State: " + state);
+
+            if(state == 0){
+                sendToProfile();
+            }
+        }
 
         if (currentUser != null){
             //fragments set

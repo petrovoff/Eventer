@@ -172,12 +172,11 @@ public class ProfileSetupActivity extends AppCompatActivity {
                                 mProgressBar.setVisibility(View.INVISIBLE);
                             });
 
-                            SharedPreferences.Editor stateEditor = getSharedPreferences("AppState", 0).edit();
-                            stateEditor.putInt("state", 1);
-                            stateEditor.apply();
+                            changeAppState();
 
                         } else {
                             storeFirestore(null, user_name, mUserPhone, user_email);
+                            changeAppState();
 
                         }
                     }else {
@@ -327,5 +326,12 @@ public class ProfileSetupActivity extends AppCompatActivity {
         Intent mainIntent = new Intent(ProfileSetupActivity.this, MainActivity.class);
         startActivity(mainIntent);
         finish();
+    }
+
+    private void changeAppState(){
+        SharedPreferences.Editor stateEditor = getSharedPreferences("AppState", 0).edit();
+        stateEditor.putInt("state", 1);
+        Log.i("APPSTATE", "Profile state: " + stateEditor.toString());
+        stateEditor.apply();
     }
 }
