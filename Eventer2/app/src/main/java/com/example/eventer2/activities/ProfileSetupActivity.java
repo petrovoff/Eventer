@@ -7,9 +7,11 @@ import androidx.core.content.ContextCompat;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -150,45 +152,49 @@ public class ProfileSetupActivity extends AppCompatActivity {
             });
 
             //proveravamo da li u bazi postoje podaci, ako ne postoje cuvamo nove
-
             mSaveUserData.setOnClickListener(v -> {
-                final String user_name = mUsernameHolder.getText().toString();
-                String user_email = mEmail.getText().toString();
+                if(isNetworkConnected()){
+                    final String user_name = mUsernameHolder.getText().toString();
+                    String user_email = mEmail.getText().toString();
 
-                if (!TextUtils.isEmpty(user_name)) {
-                    if(mUserImageUri != null){
-                        mProgressBar.setVisibility(View.VISIBLE);
+                    if (!TextUtils.isEmpty(user_name)) {
+                        if(mUserImageUri != null){
+                            mProgressBar.setVisibility(View.VISIBLE);
 
-                        if (isChanged) { //ako je slika promenjena
-                            mUser_id = mAuth.getCurrentUser().getUid();
+                            if (isChanged) { //ako je slika promenjena
+                                mUser_id = mAuth.getCurrentUser().getUid();
 
-                            final StorageReference image_path = mStorageReference.child("profile_images").child(mUser_id + ".jpg");
-                            image_path.putFile(mUserImageUri).addOnSuccessListener(taskSnapshot ->
-                                    image_path.getDownloadUrl().addOnSuccessListener(uri -> {
+                                final StorageReference image_path = mStorageReference.child("profile_images").child(mUser_id + ".jpg");
+                                image_path.putFile(mUserImageUri).addOnSuccessListener(taskSnapshot ->
+                                        image_path.getDownloadUrl().addOnSuccessListener(uri -> {
 
-                                        storeFirestore(uri, user_name, mUserPhone, user_email); //skidamo url iz baze i cuvamo u uri
-                                    })).addOnFailureListener(e -> {
-                                Toast.makeText(ProfileSetupActivity.this, "The image is not Uploaded", Toast.LENGTH_LONG).show();
-                                mProgressBar.setVisibility(View.INVISIBLE);
-                            });
+                                            storeFirestore(uri, user_name, mUserPhone, user_email); //skidamo url iz baze i cuvamo u uri
+                                        })).addOnFailureListener(e -> {
+                                    Toast.makeText(ProfileSetupActivity.this, "The image is not Uploaded", Toast.LENGTH_LONG).show();
+                                    mProgressBar.setVisibility(View.INVISIBLE);
+                                });
 
-                            changeAppState();
+                                changeAppState();
 
-                        } else {
-                            storeFirestore(null, user_name, mUserPhone, user_email);
-                            changeAppState();
+                            } else {
+                                storeFirestore(null, user_name, mUserPhone, user_email);
+                                changeAppState();
 
+
+                            }
+                        }else {
+                            Toast.makeText(this, "You must set Profile picture!", Toast.LENGTH_SHORT).show();
                         }
+
                     }else {
-                        Toast.makeText(this, "You must set Profile picture!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "You must set Username and Profile picture!", Toast.LENGTH_SHORT).show();
                     }
-
+                    mData.setUserEmail(null);
                 }else {
-                    Toast.makeText(this, "You must set Username and Profile picture!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Check your internet connection!", Toast.LENGTH_SHORT).show();
                 }
-                mData.setUserEmail(null);
-            });
 
+            });
             mUserImage.setOnClickListener(v -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (ContextCompat.checkSelfPermission(ProfileSetupActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -305,7 +311,6 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
             mFirestore.collection("Users").document(mUser_id).set(userMap).addOnSuccessListener(aVoid -> {
                 mFirestore.collection("Contacts").document(mUser_id).set(contactMap);
-                Toast.makeText(ProfileSetupActivity.this, "The user Settings are updated", Toast.LENGTH_LONG).show();
                 Intent mainIntent = new Intent(ProfileSetupActivity.this, MainActivity.class);
                 startActivity(mainIntent);
                 finish();
@@ -333,5 +338,11 @@ public class ProfileSetupActivity extends AppCompatActivity {
         stateEditor.putInt("state", 1);
         Log.i("APPSTATE", "Profile state: " + stateEditor.toString());
         stateEditor.apply();
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
     }
 }

@@ -33,6 +33,20 @@
         app:srcCompat="@drawable/action_add"
         tools:ignore="VectorDrawableCompat" />
 
+    <TextView
+        android:id="@+id/main_internet_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:text="Check your internet connection!"
+        android:textColor="@color/colorAccent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/main_container"
+        tools:visibility="invisible" />
+
     <FrameLayout
         android:id="@+id/main_container"
         android:layout_width="match_parent"

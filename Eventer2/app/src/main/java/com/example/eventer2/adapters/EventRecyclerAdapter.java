@@ -3,6 +3,7 @@ package com.example.eventer2.adapters;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -84,35 +85,40 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         holder.onCard(eventId);
 //
         holder.delete_btn.setOnClickListener(v -> {
-            Log.i("REMOVE", "Event Id:" + eventId);
+            if(holder.isNetworkConnected()){
+                Log.i("REMOVE", "Event Id:" + eventId);
 //            String currentUserId = mAuth.getCurrentUser().getUid();
-            mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    if(task.getResult().exists()){
-                        String authorId = task.getResult().getString("authorId");
-                        Log.i("REMOVE", "Author id" + authorId);
-                        if(authorId != null) {
-                            if (!authorId.equals(currentUserId)) {
-                                Log.i("REMOVE", "Invited");
-                                mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete().addOnSuccessListener(aVoid -> {
-                                    mEventList.remove(position);
-                                    notifyDataSetChanged();
-                                    Log.i("REMOVE", "Invited Deleted");
-                                    Toast.makeText(mContext, "Event was removed.", Toast.LENGTH_SHORT).show();
-                                });
-                            }else {
-                                Log.i("REMOVE", "Created");
-                                mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(aVoid -> {
-                                    mEventList.remove(position);
-                                    notifyDataSetChanged();
-                                    Log.i("REMOVE", "Created Deleted");
-                                    Toast.makeText(mContext, "Event was removed.", Toast.LENGTH_SHORT).show();
-                                });
+                mFirestore.collection("Events").document(eventId).get().addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        if(task.getResult().exists()){
+                            String authorId = task.getResult().getString("authorId");
+                            Log.i("REMOVE", "Author id" + authorId);
+                            if(authorId != null) {
+                                if (!authorId.equals(currentUserId)) {
+                                    Log.i("REMOVE", "Invited");
+                                    mFirestore.collection("Users/" + currentUserId + "/InvitedEvents").document(eventId).delete().addOnSuccessListener(aVoid -> {
+                                        mEventList.remove(position);
+                                        notifyDataSetChanged();
+                                        Log.i("REMOVE", "Invited Deleted");
+                                        Toast.makeText(mContext, "Event was removed.", Toast.LENGTH_SHORT).show();
+                                    });
+                                }else {
+                                    Log.i("REMOVE", "Created");
+                                    mFirestore.collection("Users/" + currentUserId + "/CreatedEvents").document(eventId).delete().addOnSuccessListener(aVoid -> {
+                                        mEventList.remove(position);
+                                        notifyDataSetChanged();
+                                        Log.i("REMOVE", "Created Deleted");
+                                        Toast.makeText(mContext, "Event was removed.", Toast.LENGTH_SHORT).show();
+                                    });
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }else {
+                Toast.makeText(mContext, "Check your connection!", Toast.LENGTH_SHORT).show();
+            }
+
         });
 
         //potvrda dolaska
@@ -426,6 +432,12 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
             }
             Log.i("EVENT", "Date" + month);
             return day + ". " + month + " " + year + ".";
+        }
+
+        private boolean isNetworkConnected() {
+            ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            return cm.getActiveNetworkInfo() != null;
         }
     }
 

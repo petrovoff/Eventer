@@ -16,11 +16,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +37,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URL;
 import java.security.Permission;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton mNewEventButton;
 
     private TextView eventNavBtn, profileNavBtn;
+    private TextView internetText;
     private CardView eventNavCard, profileNavCard;
 
     private AccountFragment mAccountFragment;
@@ -102,13 +110,19 @@ public class MainActivity extends AppCompatActivity {
 
             LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             mNewEventButton.setOnClickListener(v -> {
-                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                    Intent newEventIntent = new Intent(MainActivity.this, NewEventActivity.class);
-                    newEventIntent.putExtra("locationInfo", "0");
-                    startActivity(newEventIntent);
+                if(isNetworkConnected()){
+                    if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                        Intent newEventIntent = new Intent(MainActivity.this, NewEventActivity.class);
+                        newEventIntent.putExtra("locationInfo", "0");
+                        startActivity(newEventIntent);
+                    }else {
+                        Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
+                    }
                 }else {
-                    Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Turn on your internet!", Toast.LENGTH_SHORT).show();
                 }
+
+
 
             });
 
@@ -181,9 +195,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_logout_btn:
-                logOut();
-                return true;
-
+                if(isNetworkConnected()){
+                    logOut();
+                    return true;
+                }else {
+                    Toast.makeText(this, "Check your internet connection and try again!", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
             case R.id.action_settings_btn:
                 sendToProfile();
                 return true;
@@ -197,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
         mData = (ApplicationData) getApplication();
         eventNavBtn = findViewById(R.id.event_nav_btn);
         profileNavBtn = findViewById(R.id.profile_nav_btn);
+        internetText = findViewById(R.id.main_internet_text);
 
         eventNavCard = findViewById(R.id.event_card);
         profileNavCard = findViewById(R.id.profile_card);
@@ -281,5 +300,12 @@ public class MainActivity extends AppCompatActivity {
 
         return dialogBuilder.create();
     }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
+    }
+
 
 }

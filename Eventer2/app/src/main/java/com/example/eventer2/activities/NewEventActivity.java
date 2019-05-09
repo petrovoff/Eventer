@@ -6,10 +6,12 @@ import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -119,10 +121,6 @@ public class NewEventActivity extends AppCompatActivity {
             }
         }
 
-        if(isServicesOK()){
-            initMap();
-        }
-
         // set time
         mStartDisplayTime.setOnClickListener(v -> setTime(mTimeStartListener));
         mEndDisplayTime.setOnClickListener(v -> setTime(mTimeEndListener));
@@ -209,108 +207,117 @@ public class NewEventActivity extends AppCompatActivity {
             });
 
             mCreateEventButton.setOnClickListener(v -> {
+                if(isNetworkConnected()){
+                    mName = mEventName.getText().toString();
+                    mTheme = mEventTheme.getText().toString();
+                    mStartDate = mStartDisplayDate.getText().toString();
+                    mStartTime = mStartDisplayTime.getText().toString();
+                    mEndDate = mEndDisplayDate.getText().toString();
+                    mEndTime = mEndDisplayTime.getText().toString();
+                    mLocation = mEventLocation.getText().toString();
 
-                mName = mEventName.getText().toString();
-                mTheme = mEventTheme.getText().toString();
-                mStartDate = mStartDisplayDate.getText().toString();
-                mStartTime = mStartDisplayTime.getText().toString();
-                mEndDate = mEndDisplayDate.getText().toString();
-                mEndTime = mEndDisplayTime.getText().toString();
-                mLocation = mEventLocation.getText().toString();
+                    Log.i(TAG, "Location:" + mLocation);
 
-                mEventProgress.setVisibility(View.VISIBLE);
+                    mEventProgress.setVisibility(View.VISIBLE);
 
-                if (!TextUtils.isEmpty(mName)
-                        && !TextUtils.isEmpty(mTheme) && !TextUtils.isEmpty(mLocation) && !mStartTime.equals("Start Date")
-                        && !mEndDate.equals("End Date") && !mStartTime.equals("Start Time")
-                        && !mEndTime.equals("End Time")) {
+                    if (!TextUtils.isEmpty(mName)
+                            && !TextUtils.isEmpty(mTheme) && !TextUtils.isEmpty(mLocation) && !mLocation.equals("Location...") && !mStartTime.equals("Start Date")
+                            && !mEndDate.equals("End Date") && !mStartTime.equals("Start Time")
+                            && !mEndTime.equals("End Time")) {
 
-                    if (mEventImageUri != null) {
-                        final StorageReference filePath = mStorageReference.child("event_images").child(mName + ".jpg");
-                        filePath.putFile(mEventImageUri).addOnSuccessListener(taskSnapshot ->
-                                filePath.getDownloadUrl().addOnSuccessListener(uri -> {
-                                final String downloadUri = uri.toString();
+                        if (mEventImageUri != null) {
+                            final StorageReference filePath = mStorageReference.child("event_images").child(mName + ".jpg");
+                            filePath.putFile(mEventImageUri).addOnSuccessListener(taskSnapshot ->
+                                    filePath.getDownloadUrl().addOnSuccessListener(uri -> {
+                                        final String downloadUri = uri.toString();
 
-                                mEventPicture = downloadUri;
+                                        mEventPicture = downloadUri;
 
-                                Map<String, Object> eventMap = new HashMap<>();
-                                eventMap.put("eventId", eventId);
-                                eventMap.put("image_url", downloadUri);
-                                eventMap.put("name", mName);
-                                eventMap.put("theme", mTheme);
-                                eventMap.put("eventLocation", mLocation);
-                                eventMap.put("startDate", mStartDate);
-                                eventMap.put("endDate", mEndDate);
-                                eventMap.put("startTime", mStartTime);
-                                eventMap.put("endTime", mEndTime);
-                                eventMap.put("authorId", mCurrentUserId);
+                                        Map<String, Object> eventMap = new HashMap<>();
+                                        eventMap.put("eventId", eventId);
+                                        eventMap.put("image_url", downloadUri);
+                                        eventMap.put("name", mName);
+                                        eventMap.put("theme", mTheme);
+                                        eventMap.put("eventLocation", mLocation);
+                                        eventMap.put("startDate", mStartDate);
+                                        eventMap.put("endDate", mEndDate);
+                                        eventMap.put("startTime", mStartTime);
+                                        eventMap.put("endTime", mEndTime);
+                                        eventMap.put("authorId", mCurrentUserId);
 
-                                mApplicationData.setImageUri(null);
-                                mApplicationData.setEventLocation(null);
+                                        mApplicationData.setImageUri(null);
+                                        mApplicationData.setEventLocation(null);
 
-                                mFirebaseFirestore.collection("Events").document(eventId).set(eventMap).addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
-                                    } else {
-                                        Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
-                                    }
-                                    mEventProgress.setVisibility(View.INVISIBLE);
-                                });
+                                        mFirebaseFirestore.collection("Events").document(eventId).set(eventMap).addOnCompleteListener(task -> {
+                                            if (task.isSuccessful()) {
+                                                Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
+                                            } else {
+                                                Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
+                                            }
+                                            mEventProgress.setVisibility(View.INVISIBLE);
+                                        });
 
 
-                                mFirebaseFirestore.collection("Users/" + mCurrentUserId + "/CreatedEvents").document(eventId).set(eventMap).addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
-                                        onInviteFriendIntent(eventId);
-                                    } else {
-                                        Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
-                                    }
-                                    mEventProgress.setVisibility(View.INVISIBLE);
-                                });
-                            })).addOnFailureListener(e -> mEventProgress.setVisibility(View.INVISIBLE));
-                    }else {
+                                        mFirebaseFirestore.collection("Users/" + mCurrentUserId + "/CreatedEvents").document(eventId).set(eventMap).addOnCompleteListener(task -> {
+                                            if (task.isSuccessful()) {
+                                                Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
+                                                onInviteFriendIntent(eventId);
+                                            } else {
+                                                Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
+                                            }
+                                            mEventProgress.setVisibility(View.INVISIBLE);
+                                        });
+                                    })).addOnFailureListener(e -> mEventProgress.setVisibility(View.INVISIBLE));
+                        }else {
 
-                        Map<String, Object> eventMap = new HashMap<>();
-                        eventMap.put("eventId", eventId);
+                            Map<String, Object> eventMap = new HashMap<>();
+                            eventMap.put("eventId", eventId);
 //                        eventMap.put("image_url", downloadUri);
-                        eventMap.put("name", mName);
-                        eventMap.put("theme", mTheme);
-                        eventMap.put("eventLocation", mLocation);
-                        eventMap.put("startDate", mStartDate);
-                        eventMap.put("endDate", mEndDate);
-                        eventMap.put("startTime", mStartTime);
-                        eventMap.put("endTime", mEndTime);
-                        eventMap.put("authorId", mCurrentUserId);
+                            eventMap.put("name", mName);
+                            eventMap.put("theme", mTheme);
+                            eventMap.put("eventLocation", mLocation);
+                            eventMap.put("startDate", mStartDate);
+                            eventMap.put("endDate", mEndDate);
+                            eventMap.put("startTime", mStartTime);
+                            eventMap.put("endTime", mEndTime);
+                            eventMap.put("authorId", mCurrentUserId);
 
-                        mApplicationData.setImageUri(null);
-                        mApplicationData.setEventLocation(null);
+                            mApplicationData.setImageUri(null);
+                            mApplicationData.setEventLocation(null);
 
-                        mFirebaseFirestore.collection("Events").document(eventId).set(eventMap).addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
-                            }
-                            mEventProgress.setVisibility(View.INVISIBLE);
-                        });
+                            mFirebaseFirestore.collection("Events").document(eventId).set(eventMap).addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
+                                } else {
+                                    Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
+                                }
+                                mEventProgress.setVisibility(View.INVISIBLE);
+                            });
 
 
-                        mFirebaseFirestore.collection("Users/" + mCurrentUserId + "/CreatedEvents").document(eventId).set(eventMap).addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
-                                onInviteFriendIntent(eventId);
-                            } else {
-                                Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
-                            }
-                            mEventProgress.setVisibility(View.INVISIBLE);
-                        });
-                }
+                            mFirebaseFirestore.collection("Users/" + mCurrentUserId + "/CreatedEvents").document(eventId).set(eventMap).addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(NewEventActivity.this, "Event was created", Toast.LENGTH_LONG).show();
+                                    onInviteFriendIntent(eventId);
+                                } else {
+                                    Toast.makeText(NewEventActivity.this, "Some error", Toast.LENGTH_LONG).show();
+                                }
+                                mEventProgress.setVisibility(View.INVISIBLE);
+                            });
+                        }
 
+                    }else {
+                        Toast.makeText(this, "You must fill all fields!", Toast.LENGTH_SHORT).show();
+                        mEventProgress.setVisibility(View.INVISIBLE);
+                    }
                 }else {
-                    Toast.makeText(this, "You must fill all fields!", Toast.LENGTH_SHORT).show();
-                    mEventProgress.setVisibility(View.INVISIBLE);
+                    Toast.makeText(this, "Check your internet connection!", Toast.LENGTH_SHORT).show();
                 }
             });
+
+            if(isServicesOK()){
+                initMap();
+            }
         }
     }
 
@@ -325,6 +332,7 @@ public class NewEventActivity extends AppCompatActivity {
             mLocation = mApplicationData.getEventLocation();
             mEventLocation.setText(mLocation);
         }
+        mMap.setEnabled(true);
     }
 
     private void init(){
@@ -359,14 +367,17 @@ public class NewEventActivity extends AppCompatActivity {
     private void initMap(){
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         mMap.setOnClickListener(v -> {
-
-            if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                Intent mapIntent = new Intent(this, MapActivity.class);
-                startActivity(mapIntent);
+            if(isNetworkConnected()){
+                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                    mMap.setEnabled(false);
+                    Intent mapIntent = new Intent(this, MapActivity.class);
+                    startActivity(mapIntent);
+                }else {
+                    Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
+                }
             }else {
-                Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Check your internet connection!", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
 
@@ -445,5 +456,11 @@ public class NewEventActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         mApplicationData.setEventLocation("");
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
     }
 }
