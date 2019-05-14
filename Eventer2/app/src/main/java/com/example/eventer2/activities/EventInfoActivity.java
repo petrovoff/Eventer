@@ -315,17 +315,13 @@ public class EventInfoActivity extends AppCompatActivity {
         mFirestore = FirebaseFirestore.getInstance();
 
     }
-    private void onLocation(String location){
-        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                Intent infoMap = new Intent(this, InfoMapActivity.class);
-                infoMap.putExtra("location", location);
-                startActivity(infoMap);
-            }else {
-                Toast.makeText(this, "Enable your GPS and try again!", Toast.LENGTH_LONG).show();
-            }
 
+    private void onLocation(String location){
+        Intent infoMap = new Intent(this, InfoMapActivity.class);
+        infoMap.putExtra("location", location);
+        startActivity(infoMap);
     }
+
     private List<Guest> onLoadGuests(){
         guest_recycler_view.setVisibility(View.VISIBLE);
         guest_author_recycler.setVisibility(View.INVISIBLE);

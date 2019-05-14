@@ -47,9 +47,6 @@ public class InfoMapActivity extends AppCompatActivity
     private static final String COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final int LOCATION_PERMISSION_REQUESTED_CODE = 1234;
     private static final float DEFAULT_ZOOM = 15f;
-    private static final int PLACE_PICKER_REQUEST = 1;
-    private static final LatLngBounds LAT_LNG_BOUNDS = new LatLngBounds(
-            new LatLng(-40, -168), new LatLng(71,136));
 
     private String location;
 
@@ -105,21 +102,12 @@ public class InfoMapActivity extends AppCompatActivity
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         });
 
-        if (mLocationPermissionsGranted) {
-            geoLocate();
-//            getDeviceLocation();
+        geoLocate();
 
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
-            mMap.getUiSettings().setZoomControlsEnabled(true);
-            mMap.getUiSettings().setCompassEnabled(true);
-
-        }
+        mMap.setMyLocationEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(true);
     }
 
 
@@ -143,29 +131,6 @@ public class InfoMapActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUESTED_CODE);
         }
     }
-
-//    private void getDeviceLocation(){
-//        Log.d(TAG, "getDeviceLocation: getting the devices current location");
-//
-//        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(InfoMapActivity.this);
-//
-//        try{
-//            if(mLocationPermissionsGranted){
-//                Task location = mFusedLocationProviderClient.getLastLocation();
-//                location.addOnCompleteListener(task -> {
-//                    if(task.isSuccessful()){
-//                        Log.wtf(TAG, task.getResult().toString());
-//
-//                        Location currentLocation = (Location) task.getResult();
-//                        moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), DEFAULT_ZOOM, "My Location");
-//                    }
-//                });
-//
-//            }
-//        }catch (SecurityException e){
-//            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage() );
-//        }
-//    }
 
     private void geoLocate(){
         Log.d(TAG, "geoLocate: geoLocating");

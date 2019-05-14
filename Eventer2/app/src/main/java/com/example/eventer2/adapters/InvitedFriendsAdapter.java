@@ -124,14 +124,12 @@ public class InvitedFriendsAdapter extends RecyclerView.Adapter<InvitedFriendsAd
                 mData.friendsList.add(mInvitedList.get(position));
                 holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.invite_friends_done));
                 mInvitedList.get(position).setCheck(true);
-                Toast.makeText(mContext, "User:" + invited_name + " " + mInvitedList.get(position).isCheck(), Toast.LENGTH_SHORT).show();
 
             }else if(mInvitedList.get(position).isCheck()) {
                 mData.friendsList.remove(mInvitedList.get(position));
                 holder.guestInvateBtn.setImageDrawable(mContext.getDrawable(R.drawable.guest_not_invited));
                 mInvitedList.get(position).setCheck(false);
-                Toast.makeText(mContext, "User:" + invited_name + " " + mInvitedList.get(position).isCheck(), Toast.LENGTH_SHORT).show();
-            }
+             }
 
         });
 

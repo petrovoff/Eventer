@@ -5,6 +5,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public List<Guest> mGuestList;
     public Context mContext;
@@ -105,9 +108,13 @@ public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 vh.authorArrivalCard.setVisibility(View.VISIBLE);
             });
 
+            vh.itemCard.setOnClickListener(v -> {
+                vh.authorCard.setVisibility(View.INVISIBLE);
+                vh.authorArrivalCard.setVisibility(View.VISIBLE);
+            });
+
             if (guestId == null) {
                 vh.authorArrivalCard.setVisibility(View.VISIBLE);
-
             }else {
                 vh.guestArrival.setVisibility(View.VISIBLE);
             }
@@ -146,9 +153,11 @@ public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                         }
                     }
                 });
+            }
         }
     }
-    }
+
+
 
     @Override
     public int getItemCount() {
@@ -170,7 +179,8 @@ public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         private TextView guest_name, guestArrival, guestAuthorArrival;
         private TextView authorYesBtn, authorNoBtn, authorMaybeBtn;
-        private CardView authorCard, authorArrivalCard;
+        private CardView authorCard, authorArrivalCard, itemCard;
+
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -181,11 +191,13 @@ public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             authorMaybeBtn = mView.findViewById(R.id.admin_maybe_btn);
             authorCard = mView.findViewById(R.id.admin_cardview);
             authorArrivalCard = mView.findViewById(R.id.guest_admin_card);
+            itemCard = mView.findViewById(R.id.guest_item_card);
 
             authorYesBtn.setOnClickListener(this);
             authorNoBtn.setOnClickListener(this);
             authorMaybeBtn.setOnClickListener(this);
             authorArrivalCard.setOnClickListener(this);
+            itemCard.setOnClickListener(this);
 
         }
 
@@ -204,7 +216,6 @@ public class GuestPhoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         @Override
         public void onClick(View v) {
-
         }
     }
 

@@ -215,6 +215,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
 
                 addInUsers(name, number, demo, id);
                 addInEvents(id,demo);
+                Toast.makeText(this, "Notification was sent!", Toast.LENGTH_LONG).show();
 
             }
             mData.friendsList.clear();
@@ -358,7 +359,7 @@ public class InviteActivity extends AppCompatActivity implements SearchView.OnQu
         String dateTime = dateConverter(startDate) + " u " + startTime;
         String msg;
 
-        msg = "Pozvani ste na dogadjaj " + eventName + " koji pocinje " + dateTime  + ". " +
+        msg = "Pozvani ste na dogadjaj: " + eventName + " koji pocinje " + dateTime  + ". " +
                 "Detalje dogadjaja mozete pogledati putem aplikacije Eventer.";
         sm.sendTextMessage(number,null, msg,null,null);
         Log.i("INVITE","Poruka poslata");
