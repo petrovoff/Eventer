@@ -112,13 +112,7 @@ public class AuthActivity extends AppCompatActivity {
                         AuthActivity.this,
                         mCallbacks
                 );
-                Handler handler = new Handler();
-                handler.postDelayed(() -> {
-                    mErrorTextView.setVisibility(View.VISIBLE);
-                    mPhoneNumberInput.setText("");
-                    mPhoneNumberInput.setEnabled(true);
-                    mVerificationBtn.setEnabled(true);
-                }, 10000);
+
             }else {
                 Log.i("AuthActivity", "Number:" + phoneNumber);
                 Toast.makeText(this, "You must set your phone number!", Toast.LENGTH_SHORT).show();
