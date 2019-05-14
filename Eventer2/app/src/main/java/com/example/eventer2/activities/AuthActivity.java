@@ -38,6 +38,8 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.rilixtech.CountryCodePicker;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class AuthActivity extends AppCompatActivity {
@@ -112,7 +114,6 @@ public class AuthActivity extends AppCompatActivity {
                         AuthActivity.this,
                         mCallbacks
                 );
-
             }else {
                 Log.i("AuthActivity", "Number:" + phoneNumber);
                 Toast.makeText(this, "You must set your phone number!", Toast.LENGTH_SHORT).show();
@@ -127,6 +128,7 @@ public class AuthActivity extends AppCompatActivity {
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
+                Log.i("AuthActivity", "PhoneCredential: " + phoneAuthCredential);
                 signInWithPhoneAuthCredential(phoneAuthCredential);
             }
 
@@ -144,6 +146,13 @@ public class AuthActivity extends AppCompatActivity {
             public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
                 mVerificationId = verificationId;
                 mResendToken = token;
+                Handler handler = new Handler();
+                handler.postDelayed(() -> {
+                    mErrorTextView.setVisibility(View.VISIBLE);
+                    mPhoneNumberInput.setText("");
+                    mPhoneNumberInput.setEnabled(true);
+                    mVerificationBtn.setEnabled(true);
+                }, 5000);
 
                 mNumberProgress.setVisibility(View.INVISIBLE);
             }
