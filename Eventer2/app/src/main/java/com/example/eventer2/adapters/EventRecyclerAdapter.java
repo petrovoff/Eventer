@@ -32,6 +32,7 @@ import java.util.Map;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -231,7 +232,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
         private TextView event_name;
         private TextView start_date, end_date, start_time, end_time;
         private ImageView info_btn;
-        private CardView event_card;
+        private ConstraintLayout event_card;
         private Button yes_btn;
         private Button no_btn;
         private Button maybe_btn;
@@ -243,7 +244,7 @@ public class EventRecyclerAdapter extends RecyclerView.Adapter<EventRecyclerAdap
             super(itemView);
             mView = itemView;
 
-            event_card = mView.findViewById(R.id.event_card);
+            event_card = mView.findViewById(R.id.eventItemConstraint);
             info_btn = mView.findViewById(R.id.event_info_btn);
             yes_btn = mView.findViewById(R.id.event_list_yes);
             no_btn = mView.findViewById(R.id.event_list_no);
